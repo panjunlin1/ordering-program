@@ -28,17 +28,28 @@
           <!-- 顶部信息 -->
           <view class="card-header">
             <view class="user-info">
-              <image class="avatar" src="/static/home-icons/默认头像.png"/>
-              <text class="user-name">HI,朋友</text>
+              <image class="avatar" :src="userInfo.avatarUrl"/>
+              <text class="user-name">HI,{{ userInfo.nickname }}</text>
             </view>
-            <!--            <view class="login-button" @tap="handleLogin">登录</view>-->
-            <!-- 隐藏的手机号按钮（用户点击后才展示） -->
+<!--            <button-->
+<!--                open-type="getPhoneNumber"-->
+<!--                class="login-button"-->
+<!--                @getphonenumber="onGetPhoneNumber"-->
+<!--            >-->
+<!--             登陆-->
+<!--            </button>-->
+            <view v-if="isLoggedIn" class="login-success">
+              <image class="vip-icon" src="" />
+              <text class="vip-label">粉丝会员</text>
+            </view>
+
             <button
+                v-else
                 open-type="getPhoneNumber"
                 class="login-button"
                 @getphonenumber="onGetPhoneNumber"
             >
-              授权手机号
+              登录
             </button>
           </view>
 
@@ -102,24 +113,35 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
 const banners = [
   '/static/home-icons/banner1.jpg',
   '/static/home-icons/banner2.jpg',
   '/static/home-icons/banner3.jpg'
 ]
+
+const isLoggedIn = ref(false)
+const userInfo = ref({
+  phone: '',
+  openId: '',
+  token: '',
+  nickname: '朋友',
+  avatarUrl:'/static/home-icons/默认头像.png'
+  // avatarUrl:'https://v.guet.edu.cn/wengine-vpn/js/image/logo.png'
+})
+
 function onGetPhoneNumber(e) {
   if (e.detail.errMsg === 'getPhoneNumber:ok') {
-    const { encryptedData, iv } = e.detail;
+    const { encryptedData, iv } = e.detail
 
-    // 获取 wx.login 的 code
     wx.login({
       success: res => {
-        const code = res.code;
-        console.log('微信code：', code);
+        const code = res.code
+        console.log('微信code：', code)
 
-        // 发送到后端
         wx.request({
-          url: 'https://11kars1238468.vicp.fun/onLogin', // 改为你自己的后端地址
+          url: 'https://11kars1238468.vicp.fun/login',
           method: 'POST',
           data: {
             code,
@@ -127,33 +149,51 @@ function onGetPhoneNumber(e) {
             iv
           },
           success: res => {
-            console.log('登录成功', res.data);
-            wx.showToast({
-              title: '登录成功',
-              icon: 'success'
-            });
+            console.log('登录成功', res.data)
+
+            if (res.data.code === 200) {
+              wx.showToast({
+                title: '登录成功',
+                icon: 'success'
+              })
+
+              // 保存用户信息
+              const data = res.data.data
+              userInfo.value.phone = data.users.phone
+              userInfo.value.openId = data.users.openid
+              userInfo.value.token = data.token
+              userInfo.value.nickname = data.users.username
+              userInfo.value.avatarUrl = data.users.avatarUrl
+              isLoggedIn.value = true
+            } else {
+              wx.showToast({
+                title: '登录失败',
+                icon: 'none'
+              })
+            }
           },
           fail: err => {
-            console.error('登录失败', err);
+            console.error('登录失败', err)
             wx.showToast({
               title: '登录失败',
               icon: 'none'
-            });
+            })
           }
-        });
+        })
       },
       fail: err => {
-        console.error('wx.login 失败', err);
+        console.error('wx.login 失败', err)
       }
-    });
+    })
   } else {
-    console.warn('用户拒绝手机号授权：', e.detail.errMsg);
+    console.warn('用户拒绝手机号授权：', e.detail.errMsg)
     wx.showToast({
       title: '需要授权手机号',
       icon: 'none'
-    });
+    })
   }
 }
+
 </script>
 
 <style scoped>
@@ -245,9 +285,31 @@ function onGetPhoneNumber(e) {
 .login-button {
   background-color: #409e3a;
   color: white;
-  padding: 6px 16px;
+  padding: 5rpx 30rpx;
   border-radius: 20px;
   font-size: 28rpx;
+  margin-right: 50rpx;
+}
+
+.login-success {
+  display: flex;
+  align-items: center;
+  padding: 5rpx 20rpx;
+  border-radius: 20rpx;
+  margin-right: 50rpx;
+  height: 70rpx;
+}
+
+.vip-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 10rpx;
+}
+
+.vip-label {
+  font-size: 28rpx;
+  color: #a19e9e;
+  font-weight: bold;
 }
 
 .divider-horizontal {
