@@ -68,7 +68,7 @@
             <!-- 订单底部 -->
             <view class="order-footer">
               <text class="order-time">{{ formatDateTime(order.ordertime) }}</text>
-              <text class="order-price">总计：¥{{ order.totalprice }}</text>
+              <text class="order-price">总计：¥{{calcTotalPrice(order)  }}</text>
             </view>
             <view class="oder-again">
             <button class="btn-reorder">再来一单</button>
@@ -199,6 +199,13 @@ const getStatusText = (status) => {
     case 8: return '商家已拒绝';
     default: return '未知状态';
   }
+};
+
+const calcTotalPrice = (order) => {
+  if (!order.items || order.items.length === 0) return 0;
+  return order.items.reduce((sum, item) => {
+    return sum + (item.unitPrice * item.quantity);
+  }, 0).toFixed(2); // 保留两位小数
 };
 
 </script>
