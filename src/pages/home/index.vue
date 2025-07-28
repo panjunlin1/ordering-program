@@ -31,15 +31,9 @@
               <image class="avatar" :src="userInfo.avatarUrl"/>
               <text class="user-name">HI,{{ userInfo.nickname }}</text>
             </view>
-<!--            <button-->
-<!--                open-type="getPhoneNumber"-->
-<!--                class="login-button"-->
-<!--                @getphonenumber="onGetPhoneNumber"-->
-<!--            >-->
-<!--             登陆-->
-<!--            </button>-->
+
             <view v-if="isLoggedIn" class="login-success">
-              <image class="vip-icon" src="" />
+              <image class="vip-icon" src="/static/home-icons/vip.png" />
               <text class="vip-label">粉丝会员</text>
             </view>
 
@@ -378,7 +372,7 @@ function onGetPhoneNumber(e) {
 
 .feature-right {
   width: 45%;
-  height: 21vh;
+  height: 26vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
