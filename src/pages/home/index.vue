@@ -107,24 +107,35 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
+// 轮播图列表
 const banners = [
   '/static/home-icons/banner1.jpg',
   '/static/home-icons/banner2.jpg',
   '/static/home-icons/banner3.jpg'
 ]
 
+// 用户状态
 const isLoggedIn = ref(false)
 const userInfo = ref({
   phone: '',
   openId: '',
   token: '',
   nickname: '朋友',
-  avatarUrl:'/static/home-icons/默认头像.png'
-  // avatarUrl:'https://v.guet.edu.cn/wengine-vpn/js/image/logo.png'
+  avatarUrl: '/static/home-icons/默认头像.png'
 })
 
+// 页面加载时从本地缓存恢复登录状态
+onMounted(() => {
+  const cachedUser = wx.getStorageSync('userInfo')
+  if (cachedUser && cachedUser.nickname) {
+    userInfo.value = cachedUser
+    isLoggedIn.value = true
+  }
+})
+
+// 微信授权手机号登录
 function onGetPhoneNumber(e) {
   if (e.detail.errMsg === 'getPhoneNumber:ok') {
     const { encryptedData, iv } = e.detail
@@ -132,7 +143,7 @@ function onGetPhoneNumber(e) {
     wx.login({
       success: res => {
         const code = res.code
-        console.log('微信code：', code)
+        console.log('微信 code：', code)
 
         wx.request({
           url: 'https://11kars1238468.vicp.fun/login',
@@ -143,24 +154,23 @@ function onGetPhoneNumber(e) {
             iv
           },
           success: res => {
-            console.log('登录成功', res.data);
+            console.log('登录成功', res.data)
 
             if (res.data.code === 200) {
-              wx.showToast({
-                title: '登录成功',
-                icon: 'success'
+              wx.showToast({ title: '登录成功', icon: 'success' })
 
-              })
-
-              // 保存用户信息
               const data = res.data.data
-              userInfo.value.phone = data.users.phone
-              userInfo.value.openId = data.users.openid
-              userInfo.value.token = data.token
-              userInfo.value.nickname = data.users.username
-              userInfo.value.avatarUrl = data.users.avatarUrl
-              userInfo.value.id = data.users.id
+              userInfo.value = {
+                phone: data.users.phone,
+                openId: data.users.openid,
+                token: data.token,
+                nickname: data.users.username,
+                avatarUrl: data.users.avatarUrl,
+                userId: data.users.id
+              }
               isLoggedIn.value = true
+
+              // 缓存用户信息
               wx.setStorageSync('userInfo', userInfo.value)
             } else {
               wx.showToast({
@@ -190,8 +200,8 @@ function onGetPhoneNumber(e) {
     })
   }
 }
-
 </script>
+
 
 <style scoped>
 .container {

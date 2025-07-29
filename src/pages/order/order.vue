@@ -23,7 +23,7 @@
         <!-- 当点击堂食外卖时显示筛选-->
         <view v-if="activeTab === '堂食外卖'">
           <view class="filter-bar" @tap="showFilter = true">
-            <view class="filter-text">全部：近3天</view>
+            <view class="filter-text">{{ filterSummaryText }}</view>
             <view class="filter-right">
               <text>筛选</text>
               <image src="/static/order-icons/down.png" class="dropdown-icon"/>
@@ -41,7 +41,7 @@
         <view v-if="orders.length > 0">
           <view
               class="order-card"
-              v-for="order in orders"
+              v-for="order in filteredOrders"
               :key="order.id"
           >
             <view class="order-header" style="display: flex; align-items: center; gap: 12rpx;">
@@ -78,7 +78,7 @@
       <!-- 没有订单时显示提示 -->
       <view v-else class="empty-card">
         <image src="/static/order-icons/noInformation.png" class="empty-img"/>
-        <text class="empty-text">还没有订单哦</text>
+        <text class="empty-text">还没有订单哦，没有登陆请先登陆</text>
       </view>
   </view>
 
@@ -104,7 +104,7 @@
   <view class="filter-popup" v-if="showFilter">
     <view class="filter-card">
       <view class="popup-header" @tap="showFilter = false">
-        <view class="filter-text">全部：近3天</view>
+        <view class="filter-text">{{ filterSummaryText }}</view>
         <view class="filter-right">
           <text>收起</text>
           <image src="/static/order-icons/up.png" class="dropdown-icon"/>
@@ -123,9 +123,10 @@
       <view class="popup-section">
         <text class="section-title">按时间</text>
         <view class="option-group">
+          <view :class="['option-item', time === '全部' ? 'active' : '']" @tap="time = '全部'">全部</view>
           <view :class="['option-item', time === '近3天' ? 'active' : '']" @tap="time = '近3天'">近3天</view>
           <view :class="['option-item', time === '近1月' ? 'active' : '']" @tap="time = '近1月'">近1月</view>
-          <view :class="['option-item', time === '近3月' ? 'active' : '']" @tap="time = '近3月'">近3月</view>
+          <view :class="['option-item', time === '1个月以上' ? 'active' : '']" @tap="time = '1个月以上'">1个月以上</view>
         </view>
       </view>
 
@@ -140,50 +141,52 @@
 </template>
 
 <script setup>
-  import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 
-  // 当前选中的 tab
-  const activeTab = ref('堂食外卖')
-  const showFilter = ref(false)
-  const category = ref('全部')
-  const time = ref('近3天')
+// 当前选中的 tab
+const activeTab = ref('堂食外卖')
+const showFilter = ref(false)
+const category = ref('全部')
+const time = ref('近3天')
 
-  // 保存订单数据
-  const orders = ref([])
+// 保存订单数据
+const orders = ref([])
 
-  onMounted(() => {
-    const userInfo = wx.getStorageSync('userInfo')
-    if (!userInfo || !userInfo.id) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      })
-      return
-    }
+onMounted(() => {
+  const userInfo = wx.getStorageSync('userInfo')
+  console.log('读取缓存 userInfo:', userInfo)
 
-    const userId = userInfo.id  // 从缓存中获取实际登录用户的 ID
-
-    wx.request({
-      url: `https://11kars1238468.vicp.fun/api/orders/user/${userId}/details`,
-      method: 'GET',
-      success: res => {
-        if (res.data.code === 200) {
-          orders.value = res.data.data
-          console.log('订单数据：', orders.value)
-        } else {
-          wx.showToast({title: '获取订单失败', icon: 'none'})
-        }
-      },
-      fail: err => {
-        console.error('请求失败:', err)
-        wx.showToast({title: '请求失败', icon: 'none'})
-      }
+  if (!userInfo || !userInfo.userId) {
+    wx.showToast({
+      title: '请先登录',
+      icon: 'none'
     })
+    return
+  }
+
+  const userId = userInfo.userId
+  console.log('当前用户 ID：', userId)
+
+  wx.request({
+    url: `https://11kars1238468.vicp.fun/api/orders/user/${userId}/details`,
+    method: 'GET',
+    success: res => {
+      if (res.data.code === 200) {
+        orders.value = res.data.data
+        console.log('订单数据：', orders.value)
+      } else {
+        wx.showToast({ title: '获取订单失败', icon: 'none' })
+      }
+    },
+    fail: err => {
+      console.error('请求失败:', err)
+      wx.showToast({ title: '请求失败', icon: 'none' })
+    }
   })
+})
 
-
-  // 格式化时间显示函数
-  function formatDateTime(datetime) {
+// 格式化时间
+function formatDateTime(datetime) {
   if (!datetime) return ''
   const date = new Date(datetime)
   const Y = date.getFullYear()
@@ -195,30 +198,62 @@
   return `${Y}-${M}-${D} ${h}:${m}:${s}`
 }
 
-  // 获取订单状态对应的文本
-  const getStatusText = (status) => {
+// 状态文字
+const getStatusText = (status) => {
   switch (status) {
-  case 0: return '待支付';
-  case 1: return '已支付';
-  case 2: return '已接单';
-  case 3: return '配送中';
-  case 4: return '已完成';
-  case 5: return '已取消';
-  case 6: return '待接单';
-  case 7: return '待完成';
-  case 8: return '商家已拒绝';
-  default: return '未知状态';
-}
+    case 0: return '待支付'
+    case 1: return '已支付'
+    case 2: return '已接单'
+    case 3: return '配送中'
+    case 4: return '已完成'
+    case 5: return '已取消'
+    case 6: return '待接单'
+    case 7: return '待完成'
+    case 8: return '商家已拒绝'
+    default: return '未知状态'
+  }
 }
 
-  // 计算订单总价（保留两位小数）
-  const calcTotalPrice = (order) => {
+// 总价计算
+const calcTotalPrice = (order) => {
   if (!order.items || order.items.length === 0) return 0
   return order.items.reduce((sum, item) => {
-  return sum + (item.unitPrice * item.quantity)
-}, 0).toFixed(2)
+    return sum + (item.unitPrice * item.quantity)
+  }, 0).toFixed(2)
 }
+
+// 筛选 + 排序
+const filteredOrders = computed(() => {
+  let result = [...orders.value]
+
+  // 分类筛选
+  if (category.value !== '全部') {
+    result = result.filter(order => order.diningChoice === category.value)
+  }
+
+  // 时间筛选
+  const now = new Date()
+  result = result.filter(order => {
+    const orderDate = new Date(order.ordertime)
+    const diffDays = (now - orderDate) / (1000 * 60 * 60 * 24)
+    if (time.value === '近3天') return diffDays <= 3
+    if (time.value === '近1月') return diffDays <= 30
+    if (time.value === '1个月以上') return diffDays > 30
+    return true
+  })
+
+  // 时间倒序
+  result.sort((a, b) => new Date(b.ordertime) - new Date(a.ordertime))
+
+  return result
+})
+
+// 用于筛选标题显示
+const filterSummaryText = computed(() => {
+  return `${time.value}`
+})
 </script>
+
 
 
 <style scoped>
@@ -525,7 +560,7 @@
 }
 
 .option-item {
-  padding: 16rpx 70rpx;
+  padding: 16rpx 60rpx;
   background-color: #f2f2f2;
   border-radius: 40rpx;
   font-size: 28rpx;
