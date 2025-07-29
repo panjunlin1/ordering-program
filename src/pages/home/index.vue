@@ -71,11 +71,11 @@
 
     <!-- 功能区域 -->
     <view class="features">
-      <view class="feature-left">
-        <image class="feature-icon" src="/static/home-icons/堂食点餐.png"/>
-        <br>
-        <text class="feature-desc">店内就餐味更好</text>
-      </view>
+        <view class="feature-left" @click="goToOrderingPage">
+          <image class="feature-icon" src="/static/home-icons/堂食点餐.png"/>
+          <br>
+          <text class="feature-desc">店内就餐味更好</text>
+        </view>
       <view class="feature-right">
         <view class="feature-item">
           <image class="feature-icon-sm" src="/static/home-icons/vip.png"/>
@@ -134,6 +134,14 @@ onMounted(() => {
     isLoggedIn.value = true
   }
 })
+//新增跳转
+function goToOrderingPage() {
+  uni.navigateTo({
+    url: '/pages/home/orderMeals'
+  })
+}
+//新增结束
+
 
 // 微信授权手机号登录
 function onGetPhoneNumber(e) {

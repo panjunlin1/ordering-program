@@ -154,7 +154,7 @@ const orders = ref([])
 
 onMounted(() => {
   const userInfo = wx.getStorageSync('userInfo')
-  console.log('读取缓存 userInfo:', userInfo)
+  // console.log('读取缓存 userInfo:', userInfo)
 
   if (!userInfo || !userInfo.userId) {
     wx.showToast({

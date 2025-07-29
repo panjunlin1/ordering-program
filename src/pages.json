@@ -17,6 +17,12 @@
 			"style": {
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/home/orderMeals",
+			"style": {
+				"navigationBarTitleText": "点单"
+			}
 		}
 	],
 	"tabBar": {

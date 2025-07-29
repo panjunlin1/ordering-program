@@ -5,11 +5,18 @@
       <image class="bg-img" src="/static/bg.jpg" mode="aspectFill" />
       <view class="card">
         <view class="user-row">
-          <image class="avatar" :src="avatarUrl || defaultAvatar" @tap="chooseAvatar" />
+          <image
+              class="avatar"
+              :src="avatarUrl || defaultAvatar"
+              @tap="chooseAvatar"
+              @error="handleAvatarError"
+          />
           <view class="user-info">
-            <text v-if="!loggedIn" class="login-text" @tap="login">登录</text>
-            <text v-else class="user-id">会员ID：{{ memberId }}</text>
-            <text class="tip-text">登录后享更多会员权益</text>
+            <text v-if="!loggedIn" class="login-text" @tap="navigateToLogin">登录</text>
+            <text v-if="loggedIn" class="user-name">{{ userName || '未设置姓名' }}</text>
+            <text v-if="loggedIn" class="user-id">会员ID：{{ memberId }}</text>
+            <text v-if="loggedIn" class="user-phone">{{ userPhone || '未绑定手机' }}</text>
+            <text v-if="!loggedIn" class="tip-text">登录后享更多会员权益</text>
           </view>
           <view class="vip-badge">会员</view>
         </view>
@@ -45,11 +52,11 @@
       <button class="get-btn" size="mini">去获取</button>
     </view>
 
-    <!-- 我的功能 - 修改后的网格布局 -->
+    <!-- 我的功能 - 网格布局 -->
     <view class="grid">
       <view class="grid-item" v-for="(item, index) in features" :key="index" @tap="onFeatureTap(index)">
         <view class="grid-icon-container">
-          <image :src="item.icon" class="grid-icon" />
+          <image :src="item.icon" class="grid-icon" @error="handleImageError" />
           <text class="grid-label">{{ item.label }}</text>
         </view>
       </view>
@@ -64,6 +71,8 @@ export default {
       loggedIn: false,
       avatarUrl: '',
       defaultAvatar: '/static/default-avatar.png',
+      userName: '',
+      userPhone: '',
       balance: 0.00,
       points: 0,
       coupons: 0,
@@ -75,38 +84,158 @@ export default {
         { label: '我的信息', icon: '/static/profile-icons/icon-info.png' },
         { label: '修改密码', icon: '/static/profile-icons/icon-password.png' },
         { label: '会员条款', icon: '/static/profile-icons/icon-rules.png' },
-        { label: '绑定会员卡', icon: '/static/profile-icons/icon-bindcard.png' }
+        { label: '绑定会员卡', icon: '/static/profile-icons/icon-bindcard.png' },
+        { label: '退出登录', icon: '/static/profile-icons/icon-logout.png' }
       ]
     };
   },
+  onLoad() {
+    this.syncGlobalUserInfo();
+    // 注册全局数据变化监听
+    this.setupGlobalDataWatcher();
+  },
+  onShow() {
+    this.syncGlobalUserInfo();
+  },
   methods: {
+    syncGlobalUserInfo() {
+      const app = getApp();
+      if (app.globalData && app.globalData.userInfo && app.globalData.isLoggedIn) {
+        const userData = app.globalData.userInfo;
+        this.loggedIn = true;
+        this.avatarUrl = userData.avatarUrl || this.defaultAvatar;
+        this.userName = userData.nickname || userData.username;
+        this.userPhone = userData.phone;
+        // 使用业务会员ID而不是openid
+        this.memberId = userData.bizMemberId || `VIP${Math.floor(Math.random() * 1000000)}`;
+
+        if (app.globalData.userStats) {
+          this.balance = app.globalData.userStats.balance || 0;
+          this.points = app.globalData.userStats.points || 0;
+          this.coupons = app.globalData.userStats.coupons || 0;
+        }
+        console.log('用户信息同步成功:', this.avatarUrl);
+      } else {
+        this.resetUserInfo();
+      }
+    },
+    resetUserInfo() {
+      this.loggedIn = false;
+      this.avatarUrl = '';
+      this.userName = '';
+      this.userPhone = '';
+      this.memberId = '未登录';
+      this.balance = 0;
+      this.points = 0;
+      this.coupons = 0;
+    },
     chooseAvatar() {
+      if (!this.loggedIn) {
+        this.navigateToLogin();
+        return;
+      }
+
       uni.chooseImage({
         count: 1,
         success: res => {
           this.avatarUrl = res.tempFilePaths[0];
+          // 更新全局数据中的头像
+          const app = getApp();
+          if (app.globalData && app.globalData.userInfo) {
+            app.globalData.userInfo.avatarUrl = this.avatarUrl;
+          }
+          uni.showToast({ title: '头像已更新', icon: 'success' });
+        },
+        fail: err => {
+          console.error('选择头像失败', err);
+          uni.showToast({ title: '选择失败', icon: 'none' });
         }
       });
     },
-    login() {
-      this.loggedIn = true;
-      this.memberId = 'VIP20250725';
-      this.balance = 88.88;
-      this.points = 120;
-      this.coupons = 5;
+    navigateToLogin() {
+      uni.showModal({
+        title: '未登录',
+        content: '当前未登录，将自动跳转至主页进行登录',
+        showCancel: false,
+        confirmText: '确定',
+        success: (res) => {
+          if (res.confirm) {
+            uni.switchTab({
+              url: '/pages/home/index',
+              success: () => {
+                console.log('跳转到登录页');
+              },
+              fail: err => {
+                console.error('跳转失败', err);
+                uni.showToast({ title: '请从首页登录', icon: 'none' });
+              }
+            });
+          }
+        }
+      });
     },
     onFeatureTap(index) {
       const item = this.features[index];
-      uni.showToast({
-        title: item.label,
-        icon: 'none'
-      });
+
+      if (item.label === '退出登录') {
+        if (!this.loggedIn) {
+          uni.showToast({ title: '尚未登录', icon: 'none' });
+          return;
+        }
+
+        const app = getApp();
+        this.resetUserInfo();
+
+        if (app.globalData) {
+          app.globalData.isLoggedIn = false;
+          app.globalData.userInfo = null;
+          app.globalData.userStats = null;
+        }
+
+        uni.showToast({ title: '已退出登录', icon: 'none' });
+        return;
+      }
+
+      if (!this.loggedIn) {
+        this.navigateToLogin();
+        return;
+      }
+
+      uni.showToast({ title: item.label, icon: 'none' });
+    },
+    // 新增：处理头像加载错误
+    handleAvatarError(e) {
+      console.error('头像加载失败:', e);
+      this.avatarUrl = this.defaultAvatar;
+      uni.showToast({ title: '头像加载失败，使用默认头像', icon: 'none' });
+    },
+    // 新增：处理其他图片加载错误
+    handleImageError(e) {
+      console.error('图片加载失败:', e);
+      uni.showToast({ title: '图片加载失败', icon: 'none' });
+    },
+    // 新增：全局数据变化监听
+    setupGlobalDataWatcher() {
+      const app = getApp();
+      // 使用定时器检查全局数据变化（简单实现）
+      this.dataWatcher = setInterval(() => {
+        if (this.loggedIn !== (app.globalData?.isLoggedIn || false)) {
+          this.syncGlobalUserInfo();
+        }
+      }, 1000);
+    }
+  },
+  // 新增：页面卸载时清除监听器
+  onUnload() {
+    if (this.dataWatcher) {
+      clearInterval(this.dataWatcher);
     }
   }
 };
 </script>
 
 <style scoped>
+/* 原有样式保持不变 */
 .container {
   background-color: #f5f5f5;
   min-height: 100vh;
@@ -147,6 +276,7 @@ export default {
   height: 100rpx;
   border-radius: 50%;
   background-color: #ddd;
+  cursor: pointer;
 }
 
 .user-info {
@@ -160,7 +290,18 @@ export default {
   color: #000;
 }
 
+.user-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #000;
+}
+
 .user-id {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.user-phone {
   font-size: 28rpx;
   color: #333;
 }
