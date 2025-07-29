@@ -140,41 +140,50 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from 'vue'
+  import { onMounted, ref } from 'vue'
 
-// 当前选中的 tab
-const activeTab = ref('堂食外卖')
-const showFilter = ref(false)
-const category = ref('全部')
-const time = ref('近3天')
+  // 当前选中的 tab
+  const activeTab = ref('堂食外卖')
+  const showFilter = ref(false)
+  const category = ref('全部')
+  const time = ref('近3天')
 
-// 保存订单数据
-const orders = ref([])
+  // 保存订单数据
+  const orders = ref([])
 
-onMounted(() => {
-  // 假设 userId = 1，可以换成登录用户动态值
-  const userId = 1
-
-  wx.request({
-    url: `https://11kars1238468.vicp.fun/api/orders/user/${userId}/details`,
-    method: 'GET',
-    success: res => {
-      if (res.data.code === 200) {
-        orders.value = res.data.data
-        console.log('订单数据：', orders.value)
-      } else {
-        wx.showToast({title: '获取订单失败', icon: 'none'})
-      }
-    },
-    fail: err => {
-      console.error('请求失败:', err)
-      wx.showToast({title: '请求失败', icon: 'none'})
+  onMounted(() => {
+    const userInfo = wx.getStorageSync('userInfo')
+    if (!userInfo || !userInfo.id) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      })
+      return
     }
-  })
-})
 
-// 格式化时间显示函数
-function formatDateTime(datetime) {
+    const userId = userInfo.id  // 从缓存中获取实际登录用户的 ID
+
+    wx.request({
+      url: `https://11kars1238468.vicp.fun/api/orders/user/${userId}/details`,
+      method: 'GET',
+      success: res => {
+        if (res.data.code === 200) {
+          orders.value = res.data.data
+          console.log('订单数据：', orders.value)
+        } else {
+          wx.showToast({title: '获取订单失败', icon: 'none'})
+        }
+      },
+      fail: err => {
+        console.error('请求失败:', err)
+        wx.showToast({title: '请求失败', icon: 'none'})
+      }
+    })
+  })
+
+
+  // 格式化时间显示函数
+  function formatDateTime(datetime) {
   if (!datetime) return ''
   const date = new Date(datetime)
   const Y = date.getFullYear()
@@ -186,29 +195,31 @@ function formatDateTime(datetime) {
   return `${Y}-${M}-${D} ${h}:${m}:${s}`
 }
 
-const getStatusText = (status) => {
+  // 获取订单状态对应的文本
+  const getStatusText = (status) => {
   switch (status) {
-    case 0: return '待支付';
-    case 1: return '已支付';
-    case 2: return '已接单';
-    case 3: return '配送中';
-    case 4: return '已完成';
-    case 5: return '已取消';
-    case 6: return '待接单';
-    case 7: return '待完成';
-    case 8: return '商家已拒绝';
-    default: return '未知状态';
-  }
-};
+  case 0: return '待支付';
+  case 1: return '已支付';
+  case 2: return '已接单';
+  case 3: return '配送中';
+  case 4: return '已完成';
+  case 5: return '已取消';
+  case 6: return '待接单';
+  case 7: return '待完成';
+  case 8: return '商家已拒绝';
+  default: return '未知状态';
+}
+}
 
-const calcTotalPrice = (order) => {
-  if (!order.items || order.items.length === 0) return 0;
+  // 计算订单总价（保留两位小数）
+  const calcTotalPrice = (order) => {
+  if (!order.items || order.items.length === 0) return 0
   return order.items.reduce((sum, item) => {
-    return sum + (item.unitPrice * item.quantity);
-  }, 0).toFixed(2); // 保留两位小数
-};
-
+  return sum + (item.unitPrice * item.quantity)
+}, 0).toFixed(2)
+}
 </script>
+
 
 <style scoped>
 .order-container {

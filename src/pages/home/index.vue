@@ -33,7 +33,7 @@
             </view>
 
             <view v-if="isLoggedIn" class="login-success">
-              <image class="vip-icon" src="/static/home-icons/vip.png" />
+              <image class="vip-icon" src="/static/home-icons/会员图标.png" />
               <text class="vip-label">粉丝会员</text>
             </view>
 
@@ -143,12 +143,13 @@ function onGetPhoneNumber(e) {
             iv
           },
           success: res => {
-            console.log('登录成功', res.data)
+            console.log('登录成功', res.data);
 
             if (res.data.code === 200) {
               wx.showToast({
                 title: '登录成功',
                 icon: 'success'
+
               })
 
               // 保存用户信息
@@ -158,7 +159,9 @@ function onGetPhoneNumber(e) {
               userInfo.value.token = data.token
               userInfo.value.nickname = data.users.username
               userInfo.value.avatarUrl = data.users.avatarUrl
+              userInfo.value.id = data.users.id
               isLoggedIn.value = true
+              wx.setStorageSync('userInfo', userInfo.value)
             } else {
               wx.showToast({
                 title: '登录失败',
