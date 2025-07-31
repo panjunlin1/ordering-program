@@ -15,8 +15,7 @@
       <!-- 卡片浮在橙色区域上 -->
       <view class="top-card card-float">
         <view class="top-bar">
-          <view :class="['tab-item', activeTab === '堂食外卖' ? 'active' : '']" @tap="activeTab = '堂食外卖'">堂食外卖
-          </view>
+          <view :class="['tab-item', activeTab === '堂食外卖' ? 'active' : '']" @tap="activeTab = '堂食外卖'">堂食外卖</view>
           <view :class="['tab-item', activeTab === '商城' ? 'active' : '']" @tap="activeTab = '商城'">商城</view>
           <view :class="['tab-item', activeTab === '充值' ? 'active' : '']" @tap="activeTab = '充值'">充值</view>
         </view>

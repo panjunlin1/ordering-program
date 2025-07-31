@@ -9,7 +9,7 @@
     {
       "path": "pages/home/unpaid",
       "style": {
-        "navigationBarTitleText": "订单结算"
+        "navigationStyle": "custom"
       }
     },
     {
