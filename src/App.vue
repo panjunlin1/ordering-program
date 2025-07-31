@@ -1,5 +1,16 @@
-<script setup lang="ts">
-// import {onLaunch, onShow, onHide} from "@dcloudio/uni-app";
+<script >
+import {onLaunch, onShow, onHide} from "@dcloudio/uni-app";
+export default {
+  globalData: {
+    userId: null
+  }
+}
+onLaunch(()=>{
+  const cachedUser = wx.getStorageSync('userInfo')
+  if (cachedUser && cachedUser.userId) {
+    getApp().globalData.userId = cachedUser.userId
+  }
+})
 // import jsrsasign from 'jsrsasign'
 //
 // const signature = (data) => {
@@ -59,7 +70,7 @@
 //       console.log("xxxxx: ", loginRes.code);
 //       uni.request({
 //         // url: 'http://localhost:8080/login',
-//         url: 'https://11kars1238468.vicp.fun/login',
+//         url: 'https://11kars1238468.vicp.fun/pay',
 //         data: {
 //           code: loginRes.code
 //         },
