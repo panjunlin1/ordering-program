@@ -101,9 +101,9 @@
   </scroll-view>
 
   <!-- 筛选弹层 -->
-  <view class="filter-popup" v-if="showFilter">
+  <view class="filter-popup" v-if="showFilter" @tap="showFilter = false">
     <view class="filter-card">
-      <view class="popup-header" @tap="showFilter = false">
+      <view class="popup-header">
         <view class="filter-text">{{ filterSummaryText }}</view>
         <view class="filter-right">
           <text>收起</text>
@@ -111,7 +111,7 @@
         </view>
       </view>
 
-      <view class="popup-section">
+      <view class="popup-section" >
         <text class="section-title">按分类</text>
         <view class="option-group">
           <view :class="['option-item', category === '全部' ? 'active' : '']" @tap="category = '全部'">全部</view>
@@ -120,7 +120,7 @@
         </view>
       </view>
 
-      <view class="popup-section">
+      <view class="popup-section" >
         <text class="section-title">按时间</text>
         <view class="option-group">
           <view :class="['option-item', time === '全部' ? 'active' : '']" @tap="time = '全部'">全部</view>
@@ -141,7 +141,8 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { ref, computed } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 
 // 当前选中的 tab
 const activeTab = ref('堂食外卖')
@@ -152,11 +153,14 @@ const time = ref('近3天')
 // 保存订单数据
 const orders = ref([])
 
-onMounted(() => {
-  const userInfo = wx.getStorageSync('userInfo')
-  console.log('读取缓存 userInfo:', userInfo)
+onShow(() => {
+  // const userId = getApp().globalData.userId
+  // const userId = getApp().globalData.userId || wx.getStorageSync('userInfo')?.userId
+  const cachedUser = wx.getStorageSync('userInfo')
+  console.log('cachedUser:', cachedUser)
+  const userId = cachedUser?.userId
 
-  if (!userInfo || !userInfo.userId) {
+  if (!userId) {
     wx.showToast({
       title: '请先登录',
       icon: 'none'
@@ -164,7 +168,6 @@ onMounted(() => {
     return
   }
 
-  const userId = userInfo.userId
   console.log('当前用户 ID：', userId)
 
   wx.request({
@@ -184,6 +187,7 @@ onMounted(() => {
     }
   })
 })
+
 
 // 格式化时间
 function formatDateTime(datetime) {
@@ -244,13 +248,14 @@ const filteredOrders = computed(() => {
 
   // 时间倒序
   result.sort((a, b) => new Date(b.ordertime) - new Date(a.ordertime))
-
   return result
 })
 
 // 用于筛选标题显示
 const filterSummaryText = computed(() => {
-  return `${time.value}`
+  const timeText = time.value === '全部' ? '' : time.value || '';//当time.value为全部时返回一个空
+  const categoryText = category.value || '';
+  return `${timeText}${categoryText}`
 })
 </script>
 

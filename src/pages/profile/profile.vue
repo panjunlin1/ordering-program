@@ -2,7 +2,7 @@
   <view class="container">
     <!-- 顶部背景区域 -->
     <view class="top-section">
-      <image class="bg-img" src="/static/bg.jpg" mode="aspectFill" />
+<!--      <image class="bg-img" src="/static/bg.jpg" mode="aspectFill" />-->
       <view class="card">
         <view class="user-row">
           <image class="avatar" :src="avatarUrl || defaultAvatar" @tap="chooseAvatar" />
@@ -17,17 +17,17 @@
         <!-- 余额、积分、券 -->
         <view class="summary">
           <view class="item">
-            <image src="/static/icon-balance.png" class="icon" />
+<!--            <image src="/static/icon-balance.png" class="icon" />-->
             <text>余额</text>
             <text class="value">￥{{ balance }}</text>
           </view>
           <view class="item">
-            <image src="/static/icon-points.png" class="icon" />
+<!--            <image src="/static/icon-points.png" class="icon" />-->
             <text>积分</text>
             <text class="value">{{ points }}</text>
           </view>
           <view class="item">
-            <image src="/static/icon-coupon.png" class="icon" />
+<!--            <image src="/static/icon-coupon.png" class="icon" />-->
             <text>券</text>
             <text class="value">{{ coupons }} 张</text>
           </view>
@@ -37,7 +37,7 @@
 
     <!-- 生日好礼 -->
     <view class="gift-box">
-      <image src="/static/icon-gift.png" class="gift-icon" />
+<!--      <image src="/static/icon-gift.png" class="gift-icon" />-->
       <view class="gift-content">
         <text class="gift-title">生日专属好礼</text>
         <text class="gift-sub">填写生日有好礼</text>
@@ -63,7 +63,7 @@ export default {
     return {
       loggedIn: false,
       avatarUrl: '',
-      defaultAvatar: '/static/default-avatar.png',
+      defaultAvatar: '',
       balance: 0.00,
       points: 0,
       coupons: 0,

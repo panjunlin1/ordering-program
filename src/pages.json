@@ -1,48 +1,54 @@
 {
-	"pages": [
-		{
-			"path": "pages/home/index",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/order/order",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/profile/profile",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		}
-	],
-	"tabBar": {
-		"color": "#999999",
-		"selectedColor": "#006400",
-		"backgroundColor": "#ffffff",
-		"borderStyle": "black",
-		"list": [
-			{
-				"pagePath": "pages/home/index",
-				"iconPath": "static/navigationBar-icons/首页.png",
-				"selectedIconPath": "static/navigationBar-icons/首页_选中.png",
-				"text": "首页"
-			},
-			{
-				"pagePath": "pages/order/order",
-				"iconPath": "static/navigationBar-icons/订单.png",
-				"selectedIconPath": "static/navigationBar-icons/订单_选中.png",
-				"text": "订单"
-			},
-			{
-				"pagePath": "pages/profile/profile",
-				"iconPath": "static/navigationBar-icons/我的.png",
-				"selectedIconPath": "static/navigationBar-icons/我的_选中.png",
-				"text": "我的"
-			}
-		]
-	}
+  "pages": [
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/home/unpaid",
+      "style": {
+        "navigationBarTitleText": "订单结算"
+      }
+    },
+    {
+      "path": "pages/order/order",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#006400",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "iconPath": "static/navigationBar-icons/首页.png",
+        "selectedIconPath": "static/navigationBar-icons/首页_选中.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/order/order",
+        "iconPath": "static/navigationBar-icons/订单.png",
+        "selectedIconPath": "static/navigationBar-icons/订单_选中.png",
+        "text": "订单"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "iconPath": "static/navigationBar-icons/我的.png",
+        "selectedIconPath": "static/navigationBar-icons/我的_选中.png",
+        "text": "我的"
+      }
+    ]
+  }
 }

@@ -72,8 +72,8 @@
     <!-- 功能区域 -->
     <view class="features">
       <view class="feature-left">
+        <navigator url="/pages/home/unpaid" open-type="navigate">跳转点餐页面</navigator>
         <image class="feature-icon" src="/static/home-icons/堂食点餐.png"/>
-        <br>
         <text class="feature-desc">店内就餐味更好</text>
       </view>
       <view class="feature-right">
@@ -133,6 +133,7 @@ onMounted(() => {
     userInfo.value = cachedUser
     isLoggedIn.value = true
   }
+  console.log('userInfo:', userInfo)
 })
 
 // 微信授权手机号登录
@@ -172,6 +173,7 @@ function onGetPhoneNumber(e) {
 
               // 缓存用户信息
               wx.setStorageSync('userInfo', userInfo.value)
+
             } else {
               wx.showToast({
                 title: '登录失败',
