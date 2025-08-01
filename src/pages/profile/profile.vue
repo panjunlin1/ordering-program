@@ -83,7 +83,7 @@ export default {
         { label: '在线充值', icon: '/static/profile-icons/icon-recharge.png' },
         { label: '我的信息', icon: '/static/profile-icons/icon-info.png' },
         { label: '修改密码', icon: '/static/profile-icons/icon-password.png' },
-        { label: '会员条款', icon: '/static/profile-icons/icon-rules.png' },
+        { label: '地址选择', icon: '/static/profile-icons/icon-rules.png' },
         { label: '绑定会员卡', icon: '/static/profile-icons/icon-bindcard.png' },
         { label: '退出登录', icon: '/static/profile-icons/icon-logout.png' }
       ]
@@ -100,6 +100,32 @@ export default {
   methods: {
     syncGlobalUserInfo() {
       const app = getApp();
+
+      // 首先尝试从缓存中获取用户信息
+      try {
+        const cachedUserInfo = uni.getStorageSync('userInfo');
+        if (cachedUserInfo && cachedUserInfo.nickname) {
+          // 使用缓存中的数据
+          this.loggedIn = true;
+          this.avatarUrl = cachedUserInfo.avatarUrl || this.defaultAvatar;
+          this.userName = cachedUserInfo.nickname || cachedUserInfo.username;
+          this.userPhone = cachedUserInfo.phone;
+          this.memberId = cachedUserInfo.userId || `VIP${Math.floor(Math.random() * 1000000)}`;
+
+          // 同步到全局数据
+          if (app.globalData) {
+            app.globalData.isLoggedIn = true;
+            app.globalData.userInfo = cachedUserInfo;
+          }
+
+          console.log('从缓存中同步用户信息成功:', this.avatarUrl);
+          return;
+        }
+      } catch (e) {
+        console.error('读取缓存失败:', e);
+      }
+
+      // 如果缓存中没有，则使用全局数据
       if (app.globalData && app.globalData.userInfo && app.globalData.isLoggedIn) {
         const userData = app.globalData.userInfo;
         this.loggedIn = true;
@@ -107,13 +133,15 @@ export default {
         this.userName = userData.nickname || userData.username;
         this.userPhone = userData.phone;
         // 使用业务会员ID而不是openid
-        this.memberId = userData.bizMemberId || `VIP${Math.floor(Math.random() * 1000000)}`;
+        this.memberId = userData.userId || `VIP${Math.floor(Math.random() * 1000000)}`;
 
-        if (app.globalData.userStats) {
-          this.balance = app.globalData.userStats.balance || 0;
-          this.points = app.globalData.userStats.points || 0;
-          this.coupons = app.globalData.userStats.coupons || 0;
+        // 同步到缓存
+        try {
+          uni.setStorageSync('userInfo', userData);
+        } catch (e) {
+          console.error('写入缓存失败:', e);
         }
+
         console.log('用户信息同步成功:', this.avatarUrl);
       } else {
         this.resetUserInfo();
@@ -128,6 +156,13 @@ export default {
       this.balance = 0;
       this.points = 0;
       this.coupons = 0;
+
+      // 清除缓存
+      try {
+        uni.removeStorageSync('userInfo');
+      } catch (e) {
+        console.error('清除缓存失败:', e);
+      }
     },
     chooseAvatar() {
       if (!this.loggedIn) {
@@ -193,6 +228,25 @@ export default {
         }
 
         uni.showToast({ title: '已退出登录', icon: 'none' });
+        return;
+      }
+
+      if (item.label === '地址选择') {
+        if (!this.loggedIn) {
+          this.navigateToLogin();
+          return;
+        }
+
+        uni.navigateTo({
+          url: '/pages/useraddresses/addresses_chooes',
+          success: () => {
+            console.log('跳转到地址选择页面');
+          },
+          fail: (err) => {
+            console.error('跳转失败', err);
+            uni.showToast({ title: '跳转失败', icon: 'none' });
+          }
+        });
         return;
       }
 
