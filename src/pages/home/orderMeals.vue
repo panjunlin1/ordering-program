@@ -101,6 +101,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import baseUrl from '../../config.js'
 
 
 const shops = ref([]) // 门店列表
@@ -151,7 +152,7 @@ function selectShop(shop) {
 
 const fetchShops = async () => {
   const res = await uni.request({
-    url: 'https://11kars1238468.vicp.fun/manager/shop/all',
+    url: baseUrl + '/manager/shop/all',
     method: 'GET'
   })
   if (res.statusCode === 200 && res.data.code === 200 && Array.isArray(res.data.data)) {
@@ -164,7 +165,7 @@ const fetchShops = async () => {
 const fetchMenu = async (shopId) => {
   if (!shopId) return
   const res = await uni.request({
-    url: `https://11kars1238468.vicp.fun/shop/getDishes?shopId=${shopId}`,
+    url: baseUrl + `/shop/getDishes?shopId=${shopId}`,
     method: 'GET'
   })
   if (res.statusCode === 200 && res.data.code === 200 && Array.isArray(res.data.data)) {

@@ -142,6 +142,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
+import baseUrl from '../../config.js'
 
 // 当前选中的 tab
 const activeTab = ref('堂食外卖')
@@ -168,7 +169,7 @@ onShow(() => {
   console.log('当前用户 ID：', userId)
 
   wx.request({
-    url: `https://11kars1238468.vicp.fun/api/orders/user/${userId}/details`,
+    url: baseUrl + `/api/orders/user/${userId}/details`,
     method: 'GET',
     success: res => {
       if (res.data.code === 200) {

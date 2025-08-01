@@ -107,6 +107,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import baseUrl from '../../config.js'
 
 // 轮播图列表
 const banners = [
@@ -146,7 +147,7 @@ function onGetPhoneNumber(e) {
         console.log('微信 code：', code)
 
         wx.request({
-          url: 'https://11kars1238468.vicp.fun/login',
+          url: baseUrl + '/login',
           method: 'POST',
           data: {
             code,
