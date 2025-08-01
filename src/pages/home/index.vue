@@ -71,8 +71,8 @@
 
     <!-- 功能区域 -->
     <view class="features">
-      <view class="feature-left">
-        <navigator url="/pages/home/unpaid" open-type="navigate">跳转点餐页面</navigator>
+      <view class="feature-left" @click="goToOrderingPage">
+<!--        <navigator url="/pages/home/unpaid" open-type="navigate">跳转点餐页面</navigator>-->
         <image class="feature-icon" src="/static/home-icons/堂食点餐.png"/>
         <text class="feature-desc">店内就餐味更好</text>
       </view>
@@ -83,7 +83,7 @@
           <br>
           <text class="feature-desc-sm">更实惠</text>
         </view>
-        <view class="feature-item">
+        <view class="feature-item" @click="goToTakeOutPage">
           <image class="feature-icon-sm" src="/static/home-icons/外卖点餐.png"/>
           <text class="feature-title-sm">外卖点餐</text>
           <br>
@@ -202,6 +202,20 @@ function onGetPhoneNumber(e) {
     })
   }
 }
+
+
+//跳转页面
+function goToOrderingPage() {
+  uni.navigateTo({
+    url: '/pages/home/orderMeals'
+  })
+}
+function goToTakeOutPage() {
+  uni.navigateTo({
+    url: '/pages/home/takeOutMeals'
+  })
+}
+
 </script>
 
 

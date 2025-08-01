@@ -147,14 +147,12 @@ import { onShow } from '@dcloudio/uni-app'
 const activeTab = ref('堂食外卖')
 const showFilter = ref(false)
 const category = ref('全部')
-const time = ref('近3天')
+const time = ref('全部')
 
 // 保存订单数据
 const orders = ref([])
 
 onShow(() => {
-  // const userId = getApp().globalData.userId
-  // const userId = getApp().globalData.userId || wx.getStorageSync('userInfo')?.userId
   const cachedUser = wx.getStorageSync('userInfo')
   console.log('cachedUser:', cachedUser)
   const userId = cachedUser?.userId

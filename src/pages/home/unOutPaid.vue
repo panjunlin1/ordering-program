@@ -4,23 +4,35 @@
     <!-- 顶部红到浅红渐变背景（从上到下渐变） -->
     <view class="top-banner">
       <view class="header-content">
-        <view class="header-title">堂食订单结算</view>
+        <view class="header-title">外卖订单结算</view>
       </view>
     </view>
 
     <!-- 浮动卡片：取餐方式 + 门店信息 + 联系电话 -->
     <view class="card-floating card-location">
-
       <view class="store-info" >
         <view class="store-name">{{ storeInfo.name }}</view>
         <view class="store-address">地址：{{ storeInfo.address || '暂无' }}</view>
-        <!-- 堂食显示营业时间和店家电话 -->
-          <view class="store-time">营业时间: 09:00-23:00</view>
-          <view class="store-phone">店家电话: {{ storeInfo.phone || '暂无' }}</view>
+
+        <!-- 外卖显示收件信息（从数据库获取的模拟数据） -->
+          <view class="delivery-info">
+            <view class="delivery-item">
+              <text class="contact-label">收件人:</text>
+              <text class="delivery-value">{{ userInfo.name }}</text>
+            </view>
+            <view class="delivery-item">
+              <text class="contact-label">联系电话:</text>
+              <text class="delivery-value">{{ userInfo.phone }}</text>
+            </view>
+            <view class="delivery-item">
+              <text class="contact-label">收货地址:</text>
+              <text class="delivery-value">{{ userInfo.address }}</text>
+            </view>
+            <view class="store-phone mt-15">店家电话: {{ storeInfo.phone }}</view>
+          </view>
       </view>
     </view>
 
-    <!-- 商品列表（只显示一个，预留后续从数据库获取） -->
     <view class="card-floating card-products">
       <view class="section-header">
         <text class="section-title">商品</text>
@@ -47,6 +59,14 @@
           <text>商品总价</text>
           <text>¥{{ totalPrice.toFixed(2) }}</text>
         </view>
+        <view class="price-item">
+          <text>包装费</text>
+          <text>¥{{ packagingFee.toFixed(2) }}</text>
+        </view>
+        <view class="price-item">
+          <text>配送费</text>
+          <text>¥{{ deliveryFee.toFixed(2) }}</text>
+        </view>
         <view class="price-total">
           <text>实付款</text>
           <text>¥{{ payableAmount.toFixed(2) }}</text>
@@ -71,9 +91,6 @@
 <script setup>
 import {computed, ref} from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-
-// 取餐方式
-const diningType = ref('堂食')
 
 // 订单备注
 const orderRemark = ref('')
@@ -133,8 +150,13 @@ const totalPrice = computed(() => {
   }, 0)
 })
 
+//包装费
+const packagingFee = ref(1)
+//配送费
+const deliveryFee = ref(3)
+
 const payableAmount = computed(() => {
-  return totalPrice.value
+  return totalPrice.value + packagingFee.value + deliveryFee.value
 })
 
 

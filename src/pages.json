@@ -7,7 +7,25 @@
       }
     },
     {
+      "path": "pages/home/orderMeals",
+      "style": {
+        "navigationTitleText": "堂食点餐"
+      }
+    },
+    {
+      "path": "pages/home/takeOutMeals",
+      "style": {
+        "navigationTitleText": "外卖点餐"
+      }
+    },
+    {
       "path": "pages/home/unpaid",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/home/unOutPaid",
       "style": {
         "navigationStyle": "custom"
       }
