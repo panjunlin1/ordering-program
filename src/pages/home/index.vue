@@ -72,7 +72,6 @@
     <!-- 功能区域 -->
     <view class="features">
       <view class="feature-left" @click="goToOrderingPage">
-<!--        <navigator url="/pages/home/unpaid" open-type="navigate">跳转点餐页面</navigator>-->
         <image class="feature-icon" src="/static/home-icons/堂食点餐.png"/>
         <text class="feature-desc">店内就餐味更好</text>
       </view>

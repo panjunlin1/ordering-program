@@ -151,12 +151,20 @@ const totalPrice = computed(() => {
 })
 
 //包装费
-const packagingFee = ref(1)
+const packagingFeePerItem = 2
+
+const packagingFee = computed(() => {
+  return productList.value.reduce((sum, dish) => {
+    const quantity = typeof dish.quantity === 'number' ? dish.quantity : 0
+    return sum + quantity * packagingFeePerItem
+  }, 0)
+})
+
 //配送费
-const deliveryFee = ref(3)
+const deliveryFee = ref(6)
 
 const payableAmount = computed(() => {
-  return totalPrice.value + packagingFee.value + deliveryFee.value
+  return totalPrice.value +packagingFee.value + deliveryFee.value
 })
 
 

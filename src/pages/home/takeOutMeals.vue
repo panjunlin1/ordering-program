@@ -67,7 +67,8 @@
           <view class="cart-info">
             <text class="cart-icon">🛒</text>
             <text class="item-count">{{ totalCount }}</text>
-            <text class="total-price">总价: ￥{{ totalPrice.toFixed(2) }}</text>
+            <text class="item-count">外卖额外费用:￥{{ totalCount*2+6}}</text>
+            <text class="total-price">总价: ￥{{ totalPrice.toFixed(2)}}</text>
           </view>
           <button class="checkout-btn" @click="onCheckout">结算</button>
         </view>
@@ -193,16 +194,24 @@ const decreaseCount = (dish) => {
     }
   }
 }
+const totalCount = computed(() => {
+  return Object.values(selectedDishes.value).reduce((sum, c) => sum + c, 0)
+})
+
+const deliveryFee = ref(6)
+const packageFeePerItem = 2  // 每份菜品包装费 2 元
+
+const packageFee = computed(() => {
+  return totalCount.value * packageFeePerItem
+})
 
 const totalPrice = computed(() => {
-  return Object.entries(selectedDishes.value).reduce((total, [dishId, count]) => {
+  const dishesTotal = Object.entries(selectedDishes.value).reduce((total, [dishId, count]) => {
     const dish = menu.value.find(d => d.id === Number(dishId))
     return dish ? total + dish.price * count : total
   }, 0)
-})
 
-const totalCount = computed(() => {
-  return Object.values(selectedDishes.value).reduce((sum, c) => sum + c, 0)
+  return dishesTotal  + deliveryFee.value + packageFee.value
 })
 
 const toggleCart = () => {
@@ -248,11 +257,6 @@ const onCheckout = () => {
 
   console.log('订单结算数据:', orderData)
 
-  // uni.showModal({
-  //   title: '订单数据',
-  //   content: JSON.stringify(orderData, null, 2),
-  //   showCancel: false
-  // })
 
   uni.navigateTo({
     url: `/pages/home/unOutPaid?data=${encodeURIComponent(JSON.stringify(orderData))}`
