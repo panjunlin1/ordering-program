@@ -53,6 +53,24 @@
       "style": {
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/useraddresses/addresses_chooes",
+      "style": {
+        "navigationTitleText": "地址选择"
+      }
+    },
+    {
+      "path": "pages/useraddresses/Add_address",
+      "style": {
+        "navigationTitleText": "新增地址"
+      }
+    },
+    {
+      "path": "pages/useraddresses/modification_address",
+      "style": {
+        "navigationTitleText": "修改地址"
+      }
     }
   ],
   "tabBar": {
