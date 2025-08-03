@@ -88,7 +88,7 @@
           <br>
           <text class="feature-desc-sm">在家享美味</text>
         </view>
-        <view class="feature-item">
+        <view class="feature-item" @click="goToSouvenirOrderingPage">
           <image class="feature-icon-sm" src="/static/home-icons/购物篮.png"/>
           <text class="feature-title-sm">桂林好物</text>
           <br>
@@ -210,12 +210,18 @@ function goToOrderingPage() {
     url: '/pages/home/orderMeals'
   })
 }
+
 function goToTakeOutPage() {
   uni.navigateTo({
     url: '/pages/home/takeOutMeals'
   })
 }
-
+//跳转好物选购页面
+function goToSouvenirOrderingPage() {
+  uni.navigateTo({
+    url: '/pages/home/souvenir/souvenirOrdering'
+  })
+}
 </script>
 
 

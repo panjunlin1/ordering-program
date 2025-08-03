@@ -31,9 +31,21 @@
       }
     },
     {
+      "path": "pages/home/souvenir/souvenirOrdering",
+      "style": {
+        "navigationTitleText": "好物选购"
+      }
+    },
+    {
+      "path": "pages/home/souvenir/souvenirPaid",
+      "style": {
+        "navigationTitleText": "custom"
+      }
+    },
+    {
       "path": "pages/order/order",
       "style": {
-        "navigationStyle": "custom"
+        "navigationTitleText": "custom"
       }
     },
     {
