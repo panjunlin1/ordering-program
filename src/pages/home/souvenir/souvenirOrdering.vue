@@ -1,60 +1,41 @@
 <template>
   <view class="container">
 
-    <!-- 强制门店选择弹窗（遮罩层） -->
-    <view v-if="showShopSelector" class="shop-select-mask">
-      <view class="shop-list-popup">
-        <view
-            v-for="(shops, province) in shopsByProvince"
-            :key="province"
-            class="province-group"
-        >
-          <view class="province-title" @click="toggleProvince(province)">
-            {{ province }}
-            <text>{{ openedProvinces.has(province) ? '▲' : '▼' }}</text>
-          </view>
-          <view v-show="openedProvinces.has(province)">
-            <view
-                v-for="shop in shops"
-                :key="shop.id"
-                class="shop-item"
-                @click="selectShop(shop)"
-            >
-              {{ shop.shopName }} - {{ shop.address }}
-            </view>
-          </view>
-        </view>
-      </view>
-    </view>
-
     <!-- 主界面，菜单+购物车 -->
-    <view v-if="!showShopSelector">
-
-      <!-- 左上角显示当前选中门店 -->
-      <view class="shop-selector">
-        <text>门店: {{ currentShop?.shopName || '未知门店' }}</text>
-        <text class="change-shop-btn" @click="showShopSelector = true">[切换]</text>
-      </view>
-
+    <view>
       <!-- 菜单分类和菜品 -->
-      <view v-for="type in types" :key="type" class="type-section">
-        <view class="type-title">{{ type }}</view>
-        <view class="dish-list">
+      <view>
+        <view class="souvenir-list">
           <view
-              v-for="dish in menu.filter(d => d.typeName === type)"
-              :key="dish.id"
-              class="dish-item"
+              v-for="souvenir in menu"
+              :key="souvenir.id"
+              class="souvenir-item"
           >
-            <image :src="dish.image || 'https://picsum.photos/200/200'" class="dish-image" mode="aspectFill" />
-            <view class="dish-info">
-              <view class="dish-name">{{ dish.dishName }}</view>
-              <view class="dish-description">{{ dish.description }}</view>
-              <view class="dish-price">￥{{ dish.price.toFixed(2) }}</view>
+            <image :src="souvenir.image || 'https://picsum.photos/200/200'" class="souvenir-image" mode="aspectFill" />
+            <view class="souvenir-info">
+              <view class="souvenir-name">{{ souvenir.souvenirName }}</view>
+              <view
+                  class="souvenir-description"
+                  :class="{ 'expanded': expandedItems[souvenir.id] }"
+                  @click="toggleDescription(souvenir.id)"
+                  ref="descriptionRefs"
+                  :data-id="souvenir.id"
+              >
+                {{ souvenir.description }}
+              </view>
+              <view
+                  v-if="showToggle(souvenir.id)"
+                  class="toggle-text"
+                  @click.stop="toggleDescription(souvenir.id)"
+              >
+                {{ expandedItems[souvenir.id] ? '收起' : '展开' }}
+              </view>
+              <view class="souvenir-price">￥{{ souvenir.price.toFixed(2) }}</view>
             </view>
-            <view class="dish-actions">
-              <button v-if="selectedDishes[dish.id] > 0" class="btn-action" @click="decreaseCount(dish)">-</button>
-              <view v-if="selectedDishes[dish.id] > 0" class="count">{{ selectedDishes[dish.id] }}</view>
-              <button class="btn-action" @click="increaseCount(dish)">+</button>
+            <view class="souvenir-actions">
+              <button v-if="selectedSouvenir[souvenir.id] > 0" class="btn-action" @click="decreaseCount(souvenir)">-</button>
+              <view v-if="selectedSouvenir[souvenir.id] > 0" class="count">{{ selectedSouvenir[souvenir.id] }}</view>
+              <button class="btn-action" @click="increaseCount(souvenir)">+</button>
             </view>
           </view>
         </view>
@@ -67,7 +48,7 @@
           <view class="cart-info">
             <text class="cart-icon">🛒</text>
             <text class="item-count">{{ totalCount }}</text>
-            <text class="item-count">外卖额外费用:￥{{ totalCount*2+6}}</text>
+            <text class="item-count">运费:￥{{ 10 }}</text>
             <text class="total-price">总价: ￥{{ totalPrice.toFixed(2)}}</text>
           </view>
           <button class="checkout-btn" @click="onCheckout">结算</button>
@@ -76,19 +57,19 @@
         <!-- 面板内容 -->
         <view v-if="isCartOpen" class="cart-content">
           <view v-if="totalCount === 0" class="empty-cart">购物车空空如也</view>
-          <view v-for="(count, dishId) in selectedDishes" :key="dishId" class="cart-item">
+          <view v-for="(count, souvenirId) in selectedSouvenir" :key="souvenirId" class="cart-item">
             <image
                 class="cart-item-image"
-                :src="menu.find(d => d.id === Number(dishId))?.image || 'https://picsum.photos/100'"
+                :src="menu.find(d => d.id === Number(souvenirId))?.image || 'https://picsum.photos/100'"
                 mode="aspectFill"
             />
             <view class="cart-item-info">
-              <text class="item-name">{{ menu.find(d => d.id === Number(dishId))?.dishName || '' }}</text>
-              <view class="dish-price">￥{{ (menu.find(d => d.id === Number(dishId))?.price ?? 0).toFixed(2) }}</view>
+              <text class="item-name">{{ menu.find(d => d.id === Number(souvenirId))?.souvenirName || '' }}</text>
+              <view class="souvenir-price">￥{{ (menu.find(d => d.id === Number(souvenirId))?.price ?? 0).toFixed(2) }}</view>
               <view class="actions-right">
                 <text class="item-count">×{{ count }}</text>
-                <button class="btn-small" @click="decreaseCount(menu.find(d => d.id === Number(dishId)))">-</button>
-                <button class="btn-small" @click="increaseCount(menu.find(d => d.id === Number(dishId)))">+</button>
+                <button class="btn-small" @click="decreaseCount(menu.find(d => d.id === Number(souvenirId)))">-</button>
+                <button class="btn-small" @click="increaseCount(menu.find(d => d.id === Number(souvenirId)))">+</button>
               </view>
             </view>
           </view>
@@ -104,115 +85,57 @@
 import { ref, computed, onMounted } from 'vue'
 import baseUrl from '../../../config.js'
 
-
-const shops = ref([]) // 门店列表
-const showShopSelector = ref(true) // 强制弹窗显示
-
-const currentShop = ref(null)
-const openedProvinces = ref(new Set())
-
 // 菜单相关
 const menu = ref([])
-const types = ref([])
-const selectedDishes = ref({})
+const selectedSouvenir = ref({})
 const isCartOpen = ref(false)
 
-// 取省市，简单正则匹配地址开头省/市/自治区等关键词
-function extractProvince(address) {
-  if (!address) return '未知地区'
-  const cityMatch = address.match(/^(.*?市|.*?省|.*?自治区|.*?特别行政区)/)
-  return cityMatch ? cityMatch[0] : address.slice(0, 2)
-}
-
-// 根据省份分组门店
-const shopsByProvince = computed(() => {
-  const map = {}
-  shops.value.forEach(shop => {
-    const province = extractProvince(shop.address)
-    if (!map[province]) map[province] = []
-    map[province].push(shop)
-  })
-  return map
-})
-
-function toggleProvince(province) {
-  if (openedProvinces.value.has(province)) {
-    openedProvinces.value.delete(province)
-  } else {
-    openedProvinces.value.add(province)
-  }
-  openedProvinces.value = new Set(openedProvinces.value) // 触发响应式
-}
-
-function selectShop(shop) {
-  currentShop.value = shop
-  showShopSelector.value = false
-  selectedDishes.value = {}
-  fetchMenu(shop.id)
-}
-
-const fetchShops = async () => {
-  const res = await uni.request({
-    url: baseUrl + '/manager/shop/all',
+//查询全部好物
+const fetchMenu = async () => {
+  const {data} = await uni.request({
+    url: baseUrl + `/manager/souvenir/all`,
     method: 'GET'
   })
-  if (res.statusCode === 200 && res.data.code === 200 && Array.isArray(res.data.data)) {
-    shops.value = res.data.data
-  } else {
-    uni.showToast({ title: '门店列表加载失败', icon: 'error' })
-  }
-}
-
-const fetchMenu = async (shopId) => {
-  if (!shopId) return
-  const res = await uni.request({
-    url: baseUrl + `/shop/getDishes?shopId=${shopId}`,
-    method: 'GET'
-  })
-  if (res.statusCode === 200 && res.data.code === 200 && Array.isArray(res.data.data)) {
-    menu.value = res.data.data
-    types.value = [...new Set(menu.value.map(d => d.typeName))]
-    selectedDishes.value = {}
+  if (data.code===200) {
+    menu.value = data.data
+    selectedSouvenir.value = {}
   } else {
     uni.showToast({
-      title: res.data.msg || '菜单加载失败',
+      title: data.msg || '菜单加载失败',
       icon: 'error'
     })
   }
 }
 
-const increaseCount = (dish) => {
-  if (!selectedDishes.value[dish.id]) selectedDishes.value[dish.id] = 0
-  selectedDishes.value = { ...selectedDishes.value, [dish.id]: selectedDishes.value[dish.id] + 1 }
+const increaseCount = (souvenir) => {
+  if (!selectedSouvenir.value[souvenir.id]) selectedSouvenir.value[souvenir.id] = 0
+  selectedSouvenir.value = { ...selectedSouvenir.value, [souvenir.id]: selectedSouvenir.value[souvenir.id] + 1 }
 }
 
-const decreaseCount = (dish) => {
-  if (!dish || !selectedDishes.value[dish.id]) return
-  if (selectedDishes.value[dish.id] > 0) {
-    selectedDishes.value = { ...selectedDishes.value, [dish.id]: selectedDishes.value[dish.id] - 1 }
-    if (selectedDishes.value[dish.id] === 0) {
-      delete selectedDishes.value[dish.id]
+const decreaseCount = (souvenir) => {
+  if (!souvenir || !selectedSouvenir.value[souvenir.id]) return
+  if (selectedSouvenir.value[souvenir.id] > 0) {
+    selectedSouvenir.value = { ...selectedSouvenir.value, [souvenir.id]: selectedSouvenir.value[souvenir.id] - 1 }
+    if (selectedSouvenir.value[souvenir.id] === 0) {
+      delete selectedSouvenir.value[souvenir.id]
     }
   }
 }
 const totalCount = computed(() => {
-  return Object.values(selectedDishes.value).reduce((sum, c) => sum + c, 0)
+  return Object.values(selectedSouvenir.value).reduce((sum, c) => sum + c, 0)
 })
 
-const deliveryFee = ref(6)
-const packageFeePerItem = 2  // 每份菜品包装费 2 元
+//运费
+const deliveryFee = ref(10)
 
-const packageFee = computed(() => {
-  return totalCount.value * packageFeePerItem
-})
-
+// 计算总价
 const totalPrice = computed(() => {
-  const dishesTotal = Object.entries(selectedDishes.value).reduce((total, [dishId, count]) => {
-    const dish = menu.value.find(d => d.id === Number(dishId))
-    return dish ? total + dish.price * count : total
+  const souvenirTotal = Object.entries(selectedSouvenir.value).reduce((total, [souvenirId, count]) => {
+    const souvenir = menu.value.find(d => d.id === Number(souvenirId))
+    return total + (souvenir ? souvenir.price * count : 0)
   }, 0)
-
-  return dishesTotal  + deliveryFee.value + packageFee.value
+  //运费+商品费
+  return souvenirTotal  + deliveryFee.value
 })
 
 const toggleCart = () => {
@@ -221,20 +144,23 @@ const toggleCart = () => {
 
 
 onMounted(() => {
-  fetchShops()
+  fetchMenu()
+  setTimeout(checkTextOverflow, 100); // 确保渲染完成
 })
+
+//结算
 const onCheckout = () => {
-  const selectedIds = Object.keys(selectedDishes.value)
-  const productList = selectedIds.map(dishId => {
-    const dish = menu.value.find(d => d.id === Number(dishId))
-    if (!dish) return null
+  const selectedIds = Object.keys(selectedSouvenir.value)
+  const productList = selectedIds.map(souvenirId => {
+    const souvenir = menu.value.find(d => d.id === Number(souvenirId))
+    if (!souvenir) return null
     return {
-      id: dish.id,
-      name: dish.dishName,
-      price: dish.price,
-      quantity: selectedDishes.value[dishId],
-      imgUrl: dish.image,
-      spec: dish.spec || ''
+      id: souvenir.id,
+      name: souvenir.souvenirName,
+      price: souvenir.price,
+      quantity: selectedSouvenir.value[souvenirId],
+      imgUrl: souvenir.image,
+      spec: souvenir.spec || ''
       // 去掉 shopId 和 shopName，改用 currentShop 统一传递
     }
   }).filter(Boolean)
@@ -244,26 +170,47 @@ const onCheckout = () => {
     return
   }
 
-  const store = {
-    id: currentShop.value?.id,
-    name: currentShop.value?.shopName,
-    phone: currentShop.value?.phone || '',
-    address: currentShop.value?.address|| ''
-  }
-
   const orderData = {
     products: productList,
-    store
   }
 
   console.log('订单结算数据:', orderData)
 
 
   uni.navigateTo({
-    url: `/pages/home/unOutPaid?data=${encodeURIComponent(JSON.stringify(orderData))}`
+    url: `/pages/home/souvenir/souvenirPaid?data=${encodeURIComponent(JSON.stringify(orderData))}`
   })
 }
+//显示描述
 
+const expandedItems = ref({});
+const descriptionRefs = ref({});
+const isOverflowing = ref({}); // 存储每个描述是否溢出
+
+// 检查是否超出单行高度
+const checkTextOverflow = () => {
+  Object.keys(descriptionRefs.value).forEach((id) => {
+    const el = descriptionRefs.value[id];
+    if (!el) return;
+
+    const lineHeight = 24; // 单行高度（rpx，需根据实际样式调整）
+    const maxHeight = lineHeight * 1; // 允许的最大高度（1行）
+
+    // 获取实际渲染高度
+    const { height } = el.getBoundingClientRect();
+    isOverflowing.value[id] = height > maxHeight;
+  });
+};
+
+// 只有内容溢出时才显示 "展开/收起"
+const showToggle = (id) => {
+  return isOverflowing.value[id];
+};
+
+// 切换展开/收起
+const toggleDescription = (id) => {
+  expandedItems.value[id] = !expandedItems.value[id];
+};
 
 
 </script>
@@ -359,47 +306,65 @@ const onCheckout = () => {
 }
 
 /* 菜品列表 */
-.dish-list {
+.souvenir-list {
   display: flex;
   flex-direction: column;
   gap: 20rpx;
 }
-.dish-item {
+.souvenir-item {
   display: flex;
   background-color: #fff;
   border-radius: 16rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
-.dish-image {
+.souvenir-image {
   width: 180rpx;
   height: 140rpx;
   object-fit: cover;
   border-top-left-radius: 16rpx;
   border-bottom-left-radius: 16rpx;
 }
-.dish-info {
+.souvenir-info {
   flex: 1;
   padding: 20rpx;
 }
-.dish-name {
+.souvenir-name {
   font-size: 30rpx;
   font-weight: 500;
   color: #000;
 }
-.dish-description {
+/* 描述相关的 */
+.souvenir-description {
   font-size: 24rpx;
-  color: #333;
-  margin: 8rpx 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 1; /* 默认单行 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.3s;
 }
-.dish-price {
+
+.souvenir-description.expanded {
+  -webkit-line-clamp: unset; /* 展开时取消限制 */
+}
+
+.toggle-text {
+  color: #004d40;
+  font-size: 20rpx;
+  margin-top: 4rpx;
+  cursor: pointer;
+  text-align: right;
+}
+.souvenir-price {
   font-size: 28rpx;
   color: #004d40;
   font-weight: bold;
 }
 
 /* + - 按钮 */
-.dish-actions {
+.souvenir-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -457,26 +422,7 @@ const onCheckout = () => {
   border-top-left-radius: 16rpx;
   border-top-right-radius: 16rpx;
 }
-.cart-info {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  flex: 1;
-}
-.cart-icon {
-  font-size: 36rpx;
-}
-.total-price {
-  font-weight: bold;
-}
-.checkout-btn {
-  background: #1de9b6;
-  color: #000;
-  border-radius: 20rpx;
-  padding: 10rpx 20rpx;
-  font-size: 28rpx;
-  border: none;
-}
+
 
 /* 面板内容 */
 .cart-content {
