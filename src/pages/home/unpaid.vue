@@ -98,6 +98,10 @@ function getPrice(price) {
   return typeof price === 'number' ? price.toFixed(2) : '0.00'
 }
 
+// 先定义接收变量
+const orderNo = ref('')
+
+//从点餐界面传回的代码
 onLoad((query) => {
   if (query.data) {
     try {
@@ -119,6 +123,11 @@ onLoad((query) => {
         storeInfo.value.address = parsed.store.address || ''
         console.log('接收到的店铺信息:', storeInfo.value)
       }
+
+      // 新增：接收订单编号
+      orderNo.value = parsed.orderNo || ''
+      console.log('接收到的订单编号:', orderNo.value)
+
     } catch (e) {
       console.error('订单数据解析失败:', e)
       uni.showToast({title: '订单数据错误', icon: 'none'})
@@ -157,8 +166,8 @@ const onPayClick = () => {
     method: 'POST',
     data: {
       openid: userInfo.openId,         // 当前用户的 openid，用于标识微信身份
-      total:  totalPrice.value.toFixed(2),        // 支付金额（单位：分，这里是 1 分 = 0.01 元）
-      description: '桂林米粉 + 饮料'    // 商品描述
+      total: totalPrice.value.toFixed(2),                         // 支付金额（单位：分，这里是 1 分 = 0.01 元）
+      description: '堂食支付'    // 商品描述
     },
     success(res) {
       // 获取后端返回的支付参数（用于调起微信支付）
@@ -172,10 +181,26 @@ const onPayClick = () => {
         signType: payData.signType,     // 签名算法（一般为 RSA 或 MD5）
         paySign: payData.paySign,       // 支付签名
 
-        // 支付成功回调
+// 支付成功回调
         success() {
-          wx.showToast({title: '支付成功'})
-          // 你可以在这里跳转页面、刷新订单状态等
+          wx.showToast({ title: '支付成功' });
+
+          // 更新订单状态 + 保存备注
+          wx.request({
+            url: baseUrl + '/api/orders/paySuccess',
+            method: 'POST',
+            data: {
+              orderNo: orderNo.value,
+              remark: orderRemark.value  // 备注传给后端
+            },
+            success() {
+              console.log('订单状态更新为已支付，备注保存成功');
+              wx.switchTab({ url: '/pages/order/order' })
+            },
+            fail(err) {
+              console.error('更新订单状态失败', err);
+            }
+          });
         },
 
         // 支付失败或用户取消回调

@@ -67,7 +67,7 @@
           <view class="cart-info">
             <text class="cart-icon">🛒</text>
             <text class="item-count">{{ totalCount }}</text>
-            <text class="item-count">外卖额外费用:￥{{ totalCount*2+6}}</text>
+            <text class="item-count">外卖额外费用:￥{{0}}</text>
             <text class="total-price">总价: ￥{{ totalPrice.toFixed(2)}}</text>
           </view>
           <button class="checkout-btn" @click="onCheckout">结算</button>
@@ -199,7 +199,7 @@ const totalCount = computed(() => {
   return Object.values(selectedDishes.value).reduce((sum, c) => sum + c, 0)
 })
 
-const deliveryFee = ref(6)
+const deliveryFee = ref(6)//配送费
 const packageFeePerItem = 2  // 每份菜品包装费 2 元
 
 const packageFee = computed(() => {
@@ -223,6 +223,8 @@ const toggleCart = () => {
 onMounted(() => {
   fetchShops()
 })
+
+
 const onCheckout = () => {
   const selectedIds = Object.keys(selectedDishes.value)
   const productList = selectedIds.map(dishId => {
@@ -234,8 +236,6 @@ const onCheckout = () => {
       price: dish.price,
       quantity: selectedDishes.value[dishId],
       imgUrl: dish.image,
-      // spec: dish.spec || ''
-      // 去掉 shopId 和 shopName，改用 currentShop 统一传递
     }
   }).filter(Boolean)
 
@@ -248,45 +248,57 @@ const onCheckout = () => {
     id: currentShop.value?.id,
     name: currentShop.value?.shopName,
     phone: currentShop.value?.phone || '',
-    address: currentShop.value?.address|| ''
+    address: currentShop.value?.address || ''
   }
-  const cachedUser = wx.getStorageSync('userInfo')
-  // console.log('cachedUser:', cachedUser)
 
+  const cachedUser = wx.getStorageSync('userInfo')
 
   const orderData = {
     products: productList,
     store,
     userId: cachedUser?.userId || '',
-    diningChoice: '外卖',       // 用你的堂食选择
+    diningChoice: '外卖',
     total_price: totalPrice.value,
-    status:0,
-    payment_method:'微信'
+    status: 0,
+    payment_method: '微信'
   }
 
-  console.log('订单结算数据:', orderData)
+  console.log('📦 发起下单请求的数据:', orderData)
 
-  // ✅ 发送订单到后端
+  // ✅ 请求创建订单
   uni.request({
-    url: baseUrl+'/api/orders/createOrder', // 替换为你的后端接口地址
+    url: baseUrl + '/api/orders/createOrder',
     method: 'POST',
     data: orderData,
     header: {
       'Content-Type': 'application/json',
-      // 'Authorization': userInfo.value?.token || '' // 如果需要带 token
     },
     success: res => {
       if (res.data && res.data.code === 200) {
-        // 创建成功，跳转到未支付订单详情页，可带 orderId 或整单数据
+        const orderNo = res.data.data?.orderNo
+        if (!orderNo) {
+          uni.showToast({ title: '订单编号获取失败', icon: 'none' })
+          return
+        }
+
+        console.log('✅ 创建订单成功，订单号:', orderNo)
+
+        // 将 orderNo 添加到原始 orderData 中传入结算页
+        const finalOrderData = {
+          ...orderData,
+          orderNo
+        }
+
         uni.navigateTo({
-          url: `/pages/home/unOutPaid?data=${encodeURIComponent(JSON.stringify(orderData))}`
+          url: `/pages/home/unOutPaid?data=${encodeURIComponent(JSON.stringify(finalOrderData))}`
         })
+
       } else {
         uni.showToast({ title: res.data.message || '下单失败', icon: 'none' })
       }
     },
     fail: err => {
-      console.error('下单失败:', err)
+      console.error('❌ 下单请求失败:', err)
       uni.showToast({ title: '网络异常', icon: 'none' })
     }
   })
