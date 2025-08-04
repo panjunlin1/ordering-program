@@ -88,7 +88,7 @@
           <br>
           <text class="feature-desc-sm">在家享美味</text>
         </view>
-        <view class="feature-item">
+        <view class="feature-item" @click="goToSouvenirOrderingPage">
           <image class="feature-icon-sm" src="/static/home-icons/购物篮.png"/>
           <text class="feature-title-sm">桂林好物</text>
           <br>
@@ -107,6 +107,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import baseUrl from '../../config.js'
 
 // 轮播图列表
 const banners = [
@@ -146,7 +147,7 @@ function onGetPhoneNumber(e) {
         console.log('微信 code：', code)
 
         wx.request({
-          url: 'https://11kars1238468.vicp.fun/login',
+          url: baseUrl + '/login',
           method: 'POST',
           data: {
             code,
@@ -209,12 +210,18 @@ function goToOrderingPage() {
     url: '/pages/home/orderMeals'
   })
 }
+
 function goToTakeOutPage() {
   uni.navigateTo({
     url: '/pages/home/takeOutMeals'
   })
 }
-
+//跳转好物选购页面
+function goToSouvenirOrderingPage() {
+  uni.navigateTo({
+    url: '/pages/home/souvenir/souvenirOrdering'
+  })
+}
 </script>
 
 

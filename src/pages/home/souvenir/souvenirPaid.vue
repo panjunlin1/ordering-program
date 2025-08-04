@@ -4,33 +4,27 @@
     <!-- 顶部红到浅红渐变背景（从上到下渐变） -->
     <view class="top-banner">
       <view class="header-content">
-        <view class="header-title">外卖订单结算</view>
+        <view class="header-title">好物订单结算</view>
       </view>
     </view>
 
     <!-- 浮动卡片：取餐方式 + 门店信息 + 联系电话 -->
     <view class="card-floating card-location">
-      <view class="store-info" >
-        <view class="store-name">{{ storeInfo.name }}</view>
-        <view class="store-address">地址：{{ storeInfo.address || '暂无' }}</view>
-
-        <!-- 外卖显示收件信息（从数据库获取的模拟数据） -->
-          <view class="delivery-info">
-            <view class="delivery-item">
-              <text class="contact-label">收件人:</text>
-              <text class="delivery-value">{{ userInfo.name }}</text>
-            </view>
-            <view class="delivery-item">
-              <text class="contact-label">联系电话:</text>
-              <text class="delivery-value">{{ userInfo.phone }}</text>
-            </view>
-            <view class="delivery-item">
-              <text class="contact-label">收货地址:</text>
-              <text class="delivery-value">{{ userInfo.address }}</text>
-            </view>
-            <view class="store-phone mt-15">店家电话: {{ storeInfo.phone }}</view>
+        <!-- 好物显示收件信息（从数据库获取的模拟数据） -->
+        <view class="delivery-info">
+          <view class="delivery-item">
+            <text class="contact-label">收件人:</text>
+            <text class="delivery-value">{{ userInfo.name }}</text>
           </view>
-      </view>
+          <view class="delivery-item">
+            <text class="contact-label">联系电话:</text>
+            <text class="delivery-value">{{ userInfo.phone }}</text>
+          </view>
+          <view class="delivery-item">
+            <text class="contact-label">收货地址:</text>
+            <text class="delivery-value">{{ userInfo.address }}</text>
+          </view>
+        </view>
     </view>
 
     <view class="card-floating card-products">
@@ -39,15 +33,15 @@
       </view>
 
       <view class="product-list">
-        <view class="product-item" v-for="(dish, index) in productList" :key="index">
+        <view class="product-item" v-for="(souvenir, index) in productList" :key="index">
           <view class="product-img">
-            <image :src="dish.imgUrl || defaultImg" mode="aspectFill" />
+            <image :src="souvenir.imgUrl || defaultImg" mode="aspectFill" />
           </view>
           <view class="product-info">
-            <view class="product-name">{{ dish.name || '未知商品' }}</view>
+            <view class="product-name">{{ souvenir.name || '未知商品' }}</view>
             <view class="product-meta">
-              <text class="product-price">¥{{ getPrice(dish.price) }}</text>
-              <text class="product-quantity">x{{ dish.quantity || 0 }}</text>
+              <text class="product-price">¥{{ getPrice(souvenir.price) }}</text>
+              <text class="product-quantity">x{{ souvenir.quantity || 0 }}</text>
             </view>
           </view>
         </view>
@@ -60,11 +54,7 @@
           <text>¥{{ totalPrice.toFixed(2) }}</text>
         </view>
         <view class="price-item">
-          <text>包装费</text>
-          <text>¥{{ packagingFee.toFixed(2) }}</text>
-        </view>
-        <view class="price-item">
-          <text>配送费</text>
+          <text>运费</text>
           <text>¥{{ deliveryFee.toFixed(2) }}</text>
         </view>
         <view class="price-total">
@@ -91,7 +81,7 @@
 <script setup>
 import {computed, ref} from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import baseUrl from '../../config.js'
+import baseUrl from '../../../config.js'
 
 // 订单备注
 const orderRemark = ref('')
@@ -99,17 +89,12 @@ const orderRemark = ref('')
 // 模拟用户信息（从数据库获取）
 const userInfo = ref({
   name: '张三',
-  phone: '13812345678',  // 外卖收件人电话
+  phone: '13812345678',  // 好物收件人电话
   address: '广西桂林市灵川县灵川镇XX小区3栋2单元501室'
 })
 
 const productList = ref([])
-const storeInfo = ref({
-  id: null,
-  name: '默认门店',
-  phone: '',
-  address: ''
-})
+
 
 function getPrice(price) {
   return typeof price === 'number' ? price.toFixed(2) : '0.00'
@@ -127,15 +112,6 @@ onLoad((query) => {
         productList.value = parsed.products
         console.log('接收到的商品列表:', productList.value)
       }
-
-      // 设置店铺
-      if (parsed.store) {
-        storeInfo.value.name = parsed.store.name || storeInfo.value.name
-        storeInfo.value.id = parsed.store.id || null
-        storeInfo.value.phone = parsed.store.phone || ''
-        storeInfo.value.address = parsed.store.address || ''
-        console.log('接收到的店铺信息:', storeInfo.value)
-      }
     } catch (e) {
       console.error('订单数据解析失败:', e)
       uni.showToast({title: '订单数据错误', icon: 'none'})
@@ -144,28 +120,19 @@ onLoad((query) => {
 })
 // 商品总价
 const totalPrice = computed(() => {
-  return productList.value.reduce((sum, dish) => {
-    const price = typeof dish.price === 'number' ? dish.price : 0
-    const quantity = typeof dish.quantity === 'number' ? dish.quantity : 0
+  return productList.value.reduce((sum, souvenir) => {
+    const price = typeof souvenir.price === 'number' ? souvenir.price : 0
+    const quantity = typeof souvenir.quantity === 'number' ? souvenir.quantity : 0
     return sum + price * quantity
   }, 0)
 })
 
-//包装费
-const packagingFeePerItem = 2
 
-const packagingFee = computed(() => {
-  return productList.value.reduce((sum, dish) => {
-    const quantity = typeof dish.quantity === 'number' ? dish.quantity : 0
-    return sum + quantity * packagingFeePerItem
-  }, 0)
-})
-
-//配送费
-const deliveryFee = ref(6)
+//运费
+const deliveryFee = ref(10)
 
 const payableAmount = computed(() => {
-  return totalPrice.value +packagingFee.value + deliveryFee.value
+  return totalPrice.value + deliveryFee.value
 })
 
 
@@ -187,8 +154,8 @@ const onPayClick = () => {
     method: 'POST',
     data: {
       openid: userInfo.openId,         // 当前用户的 openid，用于标识微信身份
-      total: 1,                         // 支付金额（单位：分，这里是 1 分 = 0.01 元）
-      description: '桂林米粉 + 饮料'    // 商品描述
+      total: payableAmount.value.toFixed(2),          //这里是字符串格式，后端再乘100变成元
+      description: '好物订单'    // 商品描述
     },
     success(res) {
       // 获取后端返回的支付参数（用于调起微信支付）
@@ -323,103 +290,6 @@ const onPayClick = () => {
   font-weight: 600;
 }
 
-/* 取餐方式 */
-.dining-type {
-  display: flex;
-  justify-content: center;
-  gap: 40rpx;
-  margin-bottom: 30rpx;
-}
-
-.dining-option {
-  padding: 22rpx 70rpx;
-  border-radius: 50rpx;
-  border: 2rpx solid #ff5a3c;
-  font-size: 30rpx;
-  color: #ff5a3c;
-  background-color: #fff5f2;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.dining-option.active {
-  color: #fff;
-  background-color: #ff5a3c;
-  box-shadow: 0 5rpx 15rpx rgba(255, 90, 60, 0.25);
-}
-
-/* 门店信息 */
-.store-info {
-  margin-top: 15rpx;
-  color: #333;
-}
-
-.store-name {
-  font-weight: 600;
-  margin-bottom: 10rpx;
-  display: flex;
-  align-items: center;
-  font-size: 30rpx;
-}
-
-.store-name::before {
-  content: '';
-  display: inline-block;
-  width: 10rpx;
-  height: 10rpx;
-  border-radius: 50%;
-  background-color: #ff5a3c;
-  margin-right: 12rpx;
-}
-
-.store-address {
-  font-size: 26rpx;
-  color: #666;
-  margin-bottom: 8rpx;
-  display: flex;
-  align-items: center;
-  line-height: 1.4;
-}
-
-.store-address::before {
-  content: '📍';
-  margin-right: 10rpx;
-  font-size: 26rpx;
-}
-
-.store-time {
-  font-size: 24rpx;
-  color: #999;
-  display: flex;
-  align-items: center;
-  margin-bottom: 8rpx;
-}
-
-.store-time::before {
-  content: '⏰';
-  margin-right: 10rpx;
-  font-size: 24rpx;
-}
-
-.store-phone {
-  font-size: 24rpx;
-  color: #999;
-  display: flex;
-  align-items: center;
-  margin-bottom: 16rpx;
-}
-
-.store-phone::before {
-  content: '📞';
-  margin-right: 10rpx;
-  font-size: 24rpx;
-}
-
-/* 外卖信息中的店家电话上边距 */
-.mt-15 {
-  margin-top: 15rpx;
-}
-
 /* 联系信息样式 */
 .contact-label {
   font-size: 28rpx;
@@ -428,7 +298,7 @@ const onPayClick = () => {
   display: inline-block;
 }
 
-/* 外卖收件信息 */
+/* 好物收件信息 */
 .delivery-info {
   margin-top: 15rpx;
   border-top: 1rpx dashed #f0f0f0;

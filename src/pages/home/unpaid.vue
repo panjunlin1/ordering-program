@@ -71,6 +71,7 @@
 <script setup>
 import {computed, ref} from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import baseUrl from '../../config.js'
 
 // 取餐方式
 const diningType = ref('堂食')
@@ -152,7 +153,7 @@ const onPayClick = () => {
 
   // 向后端发起支付请求，生成 JSAPI 支付参数
   wx.request({
-    url: 'https://11kars1238468.vicp.fun/api/pay/create',  // 后端接口地址（生成预支付订单）
+    url: baseUrl + '/api/pay/create',  // 后端接口地址（生成预支付订单）
     method: 'POST',
     data: {
       openid: userInfo.openId,         // 当前用户的 openid，用于标识微信身份
