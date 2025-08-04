@@ -151,7 +151,7 @@ function selectShop(shop) {
 
 const fetchShops = async () => {
   const res = await uni.request({
-    url: 'https://11kars1238468.vicp.fun/manager/shop/all',
+    url: 'https://1hj114ab57208.vicp.fun/manager/shop/all',
     method: 'GET'
   })
   if (res.statusCode === 200 && res.data.code === 200 && Array.isArray(res.data.data)) {
@@ -164,7 +164,7 @@ const fetchShops = async () => {
 const fetchMenu = async (shopId) => {
   if (!shopId) return
   const res = await uni.request({
-    url: `https://11kars1238468.vicp.fun/shop/getDishes?shopId=${shopId}`,
+    url: `https://1hj114ab57208.vicp.fun/shop/getDishes?shopId=${shopId}`,
     method: 'GET'
   })
   if (res.statusCode === 200 && res.data.code === 200 && Array.isArray(res.data.data)) {
@@ -265,16 +265,15 @@ const onCheckout = () => {
   position: relative;
   min-height: 100vh;
   box-sizing: border-box;
-  background-color: #e0f2f1; /* 浅墨绿色背景 */
+  background-color: #f5f4f2;
 }
 
 /* 门店选择遮罩弹窗 */
 .shop-select-mask {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   z-index: 1200;
-
   display: flex;
   justify-content: center;
   align-items: center;
@@ -282,14 +281,15 @@ const onCheckout = () => {
 
 /* 弹窗内容 */
 .shop-list-popup {
-  background: #004d40;
+  background: #08391f;
   border-radius: 20rpx;
   padding: 30rpx 40rpx;
   width: 80vw;
   max-height: 80vh;
   overflow-y: auto;
-  color: #fff;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.5);
+  color: #f5e4c7;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.5);
+  border: 2rpx solid #409e3a; /* 新增边框 */
 }
 
 /* 省份标题 */
@@ -297,44 +297,50 @@ const onCheckout = () => {
   font-size: 32rpx;
   font-weight: bold;
   padding: 16rpx 10rpx;
-  cursor: pointer;
-  user-select: none;
   display: flex;
   justify-content: space-between;
-  border-bottom: 1rpx solid #00332f;
+  border-bottom: 1rpx solid #409e3a;
+  color: #f5d7a5;
+  border-left: 6rpx solid #409e3a; /* 新增左边边框强化层次 */
+  margin-bottom: 8rpx;
+  background-color: #0b4e22;
+  border-radius: 8rpx;
 }
 
 /* 门店项 */
 .shop-item {
   font-size: 28rpx;
-  padding: 12rpx 20rpx;
-  cursor: pointer;
-  border-bottom: 1rpx solid #002822;
+  padding: 14rpx 24rpx;
+  border-bottom: 1rpx solid #2c5332;
+  border-radius: 12rpx;
+  margin: 6rpx 0;
+  transition: background-color 0.3s;
+  border: 1rpx solid transparent; /* 占位防跳动 */
 }
 .shop-item:hover {
-  background-color: #00221a;
+  background-color: #2d6035;
+  border-color: #a19e9e; /* 悬停时边框显现 */
 }
 
-/* 左上角当前门店显示 */
+/* 当前门店显示 */
 .shop-selector {
   position: fixed;
   top: 20rpx;
   left: 20rpx;
   z-index: 1100;
-  background: #004d40;
+  background: #409e3a;
   border-radius: 12rpx;
-  padding: 10rpx 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.25);
+  padding: 12rpx 24rpx;
   font-size: 28rpx;
   color: #fff;
   display: flex;
   align-items: center;
-  user-select: none;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.25);
+  border: 2rpx solid #08391f; /* 边框增强立体感 */
 }
 .change-shop-btn {
   margin-left: 20rpx;
-  color: #1de9b6;
-  cursor: pointer;
+  color: #f5d7a5;
   font-weight: bold;
 }
 
@@ -342,10 +348,13 @@ const onCheckout = () => {
 .type-title {
   font-size: 32rpx;
   font-weight: bold;
-  margin: 20rpx 0 10rpx 0;
-  color: #000;
-  border-left: 10rpx solid #004d40;
+  margin: 24rpx 0 12rpx;
+  color: #08391f;
+  border-left: 12rpx solid #409e3a;
   padding-left: 16rpx;
+  background-color: #e4f0de;
+  border-radius: 8rpx;
+  box-shadow: 0 2rpx 6rpx rgba(64, 158, 58, 0.3); /* 轻微阴影 */
 }
 
 /* 菜品列表 */
@@ -358,8 +367,14 @@ const onCheckout = () => {
   display: flex;
   background-color: #fff;
   border-radius: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4rpx 10rpx rgba(64, 158, 58, 0.15); /* 柔和绿阴影 */
   overflow: hidden;
+  border: 2rpx solid #409e3a; /* 新增边框 */
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+.dish-item:hover {
+  box-shadow: 0 6rpx 14rpx rgba(64, 158, 58, 0.35);
+  border-color: #08391f;
 }
 .dish-image {
   width: 180rpx;
@@ -374,17 +389,17 @@ const onCheckout = () => {
 }
 .dish-name {
   font-size: 30rpx;
-  font-weight: 500;
-  color: #000;
+  font-weight: 600;
+  color: #08391f;
 }
 .dish-description {
   font-size: 24rpx;
-  color: #333;
-  margin: 8rpx 0;
+  color: #666;
+  margin: 6rpx 0;
 }
 .dish-price {
   font-size: 28rpx;
-  color: #004d40;
+  color: #409e3a;
   font-weight: bold;
 }
 
@@ -398,19 +413,24 @@ const onCheckout = () => {
 }
 .btn-action,
 .btn-small {
-  width: 50rpx;
-  height: 50rpx;
+  width: 52rpx;
+  height: 52rpx;
   border-radius: 50%;
-  background: #004d40;
+  background: #409e3a;
   color: #fff;
   font-size: 32rpx;
   border: none;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   user-select: none;
+  transition: background-color 0.2s;
+  box-shadow: 0 2rpx 6rpx rgba(64, 158, 58, 0.6);
+}
+.btn-action:hover,
+.btn-small:hover {
+  background: #2e7d32;
+  box-shadow: 0 4rpx 10rpx rgba(46, 125, 50, 0.8);
 }
 
 /* 底部购物车 */
@@ -419,11 +439,10 @@ const onCheckout = () => {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #ffffff;
+  background: #fff;
   box-shadow: 0 -2rpx 8rpx rgba(0, 0, 0, 0.1);
-  border-top-left-radius: 16rpx;
-  border-top-right-radius: 16rpx;
-
+  border-top-left-radius: 20rpx;
+  border-top-right-radius: 20rpx;
   max-height: 100vh;
   overflow: visible;
   transition: height 0.3s ease;
@@ -439,13 +458,14 @@ const onCheckout = () => {
 /* 面板头部 */
 .cart-header {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   padding: 20rpx;
-  background: #004d40;
+  background: #08391f;
   color: #fff;
-  border-top-left-radius: 16rpx;
-  border-top-right-radius: 16rpx;
+  border-top-left-radius: 20rpx;
+  border-top-right-radius: 20rpx;
+  border-bottom: 3rpx solid #409e3a; /* 下边框加强视觉分割 */
 }
 .cart-info {
   display: flex;
@@ -453,19 +473,23 @@ const onCheckout = () => {
   gap: 16rpx;
   flex: 1;
 }
-.cart-icon {
-  font-size: 36rpx;
-}
 .total-price {
   font-weight: bold;
+  font-size: 30rpx;
 }
 .checkout-btn {
-  background: #1de9b6;
-  color: #000;
+  background: #f5d7a5;
+  color: #08391f;
   border-radius: 20rpx;
-  padding: 10rpx 20rpx;
+  padding: 10rpx 24rpx;
   font-size: 28rpx;
   border: none;
+  font-weight: bold;
+  box-shadow: 0 2rpx 8rpx rgba(245, 215, 165, 0.6);
+  transition: background-color 0.3s;
+}
+.checkout-btn:hover {
+  background-color: #e6c989;
 }
 
 /* 面板内容 */
@@ -474,7 +498,7 @@ const onCheckout = () => {
 }
 .empty-cart {
   text-align: center;
-  color: #888;
+  color: #a19e9e;
   font-size: 28rpx;
 }
 .cart-item {
@@ -490,6 +514,7 @@ const onCheckout = () => {
   border-radius: 8rpx;
   object-fit: cover;
   flex-shrink: 0;
+  border: 1.5rpx solid #409e3a; /* 给小图加边框 */
 }
 .cart-item-info {
   flex: 1;
@@ -516,8 +541,5 @@ const onCheckout = () => {
 }
 .actions-right .btn-small:last-child {
   order: 3;
-}
-.item-count {
-  margin-right: 12rpx;
 }
 </style>

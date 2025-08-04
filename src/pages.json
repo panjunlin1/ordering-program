@@ -41,6 +41,13 @@
       "style": {
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/profile/memberRegister",
+      "style": {
+        "navigationBarTitleText": "会员注册",
+        "backgroundColor": "#f0f5f3"
+      }
     }
   ],
   "tabBar": {
