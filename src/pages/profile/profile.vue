@@ -189,12 +189,14 @@ export default {
         {label: '商城', icon: '/static/profile-icons/icon-shop.png'},
         {label: '会员码', icon: '/static/profile-icons/icon-qrcode.png'},
         {label: '我的信息', icon: '/static/profile-icons/icon-info.png'},
-        {label: '会员条款', icon: '/static/profile-icons/icon-rules.png'}
+        {label: '会员条款', icon: '/static/profile-icons/icon-rules.png'},
+        // 新增地址选择功能
+        {label: '地址选择', icon: '/static/profile-icons/地址.png'}
       ],
 
       dataWatcher: null,  // 定时器
 
-      refreshIntervalMs: 15000,  // 自动刷新的时间间隔，默认ms
+      refreshIntervalMs: 5000,  // 自动刷新的时间间隔，默认ms
     };
   },
   computed: {
@@ -352,6 +354,9 @@ export default {
         this.memberUid = userData.memberUid || this.memberUid;
         this.gender = userData.gender !== undefined ? userData.gender : this.gender;
 
+        // 同步地址信息
+        this.address = userData.address || '';
+
         if (app.globalData.userStats) {
           this.balance = app.globalData.userStats.balance || 0;
           this.coupons = app.globalData.userStats.coupons || 0;
@@ -371,10 +376,12 @@ export default {
         this.memberUid = stored.memberUid || this.memberUid;
         this.gender = stored.gender !== undefined ? stored.gender : this.gender;
 
+        // 同步地址信息
+        this.address = stored.address || '';
+
         this.balance = this.balance || 0;
         this.coupons = this.coupons || 0;
 
-        this.address = stored.address || '';
         this.birthday = stored.birthday || '';
         this.openid = stored.openId || '';
         this.createTime = stored.createTime || '';
@@ -427,6 +434,22 @@ export default {
         this.navigateToLogin();
         return;
       }
+
+      // 地址选择功能处理
+      if (item.label === '地址选择') {
+        uni.navigateTo({
+          url: '/pages/useraddresses/addresses_chooes',
+          success: () => {
+            console.log('跳转到地址选择页面');
+          },
+          fail: (err) => {
+            console.error('跳转失败', err);
+            uni.showToast({ title: '跳转失败', icon: 'none' });
+          }
+        });
+        return;
+      }
+
       switch(index) {
         case 0:
           uni.showToast({title: '商城功能开发中', icon: 'none'});
@@ -487,6 +510,7 @@ export default {
 </script>
 
 <style scoped>
+/* 原有样式保持不变 */
 .container {
   padding: 16rpx;
   padding-bottom: 200rpx;
