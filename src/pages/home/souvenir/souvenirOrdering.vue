@@ -14,7 +14,22 @@
             <image :src="souvenir.image || 'https://picsum.photos/200/200'" class="souvenir-image" mode="aspectFill" />
             <view class="souvenir-info">
               <view class="souvenir-name">{{ souvenir.souvenirName }}</view>
-              <view class="souvenir-description">{{ souvenir.description }}</view>
+              <view
+                  class="souvenir-description"
+                  :class="{ 'expanded': expandedItems[souvenir.id] }"
+                  @click="toggleDescription(souvenir.id)"
+                  ref="descriptionRefs"
+                  :data-id="souvenir.id"
+              >
+                {{ souvenir.description }}
+              </view>
+              <view
+                  v-if="showToggle(souvenir.id)"
+                  class="toggle-text"
+                  @click.stop="toggleDescription(souvenir.id)"
+              >
+                {{ expandedItems[souvenir.id] ? '收起' : '展开' }}
+              </view>
               <view class="souvenir-price">￥{{ souvenir.price.toFixed(2) }}</view>
             </view>
             <view class="souvenir-actions">
@@ -130,6 +145,7 @@ const toggleCart = () => {
 
 onMounted(() => {
   fetchMenu()
+  setTimeout(checkTextOverflow, 100); // 确保渲染完成
 })
 
 //结算
@@ -165,7 +181,36 @@ const onCheckout = () => {
     url: `/pages/home/souvenir/souvenirPaid?data=${encodeURIComponent(JSON.stringify(orderData))}`
   })
 }
+//显示描述
 
+const expandedItems = ref({});
+const descriptionRefs = ref({});
+const isOverflowing = ref({}); // 存储每个描述是否溢出
+
+// 检查是否超出单行高度
+const checkTextOverflow = () => {
+  Object.keys(descriptionRefs.value).forEach((id) => {
+    const el = descriptionRefs.value[id];
+    if (!el) return;
+
+    const lineHeight = 24; // 单行高度（rpx，需根据实际样式调整）
+    const maxHeight = lineHeight * 1; // 允许的最大高度（1行）
+
+    // 获取实际渲染高度
+    const { height } = el.getBoundingClientRect();
+    isOverflowing.value[id] = height > maxHeight;
+  });
+};
+
+// 只有内容溢出时才显示 "展开/收起"
+const showToggle = (id) => {
+  return isOverflowing.value[id];
+};
+
+// 切换展开/收起
+const toggleDescription = (id) => {
+  expandedItems.value[id] = !expandedItems.value[id];
+};
 
 
 </script>
@@ -289,10 +334,28 @@ const onCheckout = () => {
   font-weight: 500;
   color: #000;
 }
+/* 描述相关的 */
 .souvenir-description {
   font-size: 24rpx;
-  color: #333;
-  margin: 8rpx 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 1; /* 默认单行 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.3s;
+}
+
+.souvenir-description.expanded {
+  -webkit-line-clamp: unset; /* 展开时取消限制 */
+}
+
+.toggle-text {
+  color: #004d40;
+  font-size: 20rpx;
+  margin-top: 4rpx;
+  cursor: pointer;
+  text-align: right;
 }
 .souvenir-price {
   font-size: 28rpx;
@@ -359,26 +422,7 @@ const onCheckout = () => {
   border-top-left-radius: 16rpx;
   border-top-right-radius: 16rpx;
 }
-.cart-info {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  flex: 1;
-}
-.cart-icon {
-  font-size: 36rpx;
-}
-.total-price {
-  font-weight: bold;
-}
-.checkout-btn {
-  background: #1de9b6;
-  color: #000;
-  border-radius: 20rpx;
-  padding: 10rpx 20rpx;
-  font-size: 28rpx;
-  border: none;
-}
+
 
 /* 面板内容 */
 .cart-content {
