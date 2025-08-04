@@ -234,7 +234,7 @@ const onCheckout = () => {
       price: dish.price,
       quantity: selectedDishes.value[dishId],
       imgUrl: dish.image,
-      spec: dish.spec || ''
+      // spec: dish.spec || ''
       // 去掉 shopId 和 shopName，改用 currentShop 统一传递
     }
   }).filter(Boolean)
@@ -250,17 +250,45 @@ const onCheckout = () => {
     phone: currentShop.value?.phone || '',
     address: currentShop.value?.address|| ''
   }
+  const cachedUser = wx.getStorageSync('userInfo')
+  // console.log('cachedUser:', cachedUser)
+
 
   const orderData = {
     products: productList,
-    store
+    store,
+    userId: cachedUser?.userId || '',
+    diningChoice: '外卖',       // 用你的堂食选择
+    total_price: totalPrice.value,
+    status:0,
+    payment_method:'微信'
   }
 
   console.log('订单结算数据:', orderData)
 
-
-  uni.navigateTo({
-    url: `/pages/home/unOutPaid?data=${encodeURIComponent(JSON.stringify(orderData))}`
+  // ✅ 发送订单到后端
+  uni.request({
+    url: baseUrl+'/api/orders/createOrder', // 替换为你的后端接口地址
+    method: 'POST',
+    data: orderData,
+    header: {
+      'Content-Type': 'application/json',
+      // 'Authorization': userInfo.value?.token || '' // 如果需要带 token
+    },
+    success: res => {
+      if (res.data && res.data.code === 200) {
+        // 创建成功，跳转到未支付订单详情页，可带 orderId 或整单数据
+        uni.navigateTo({
+          url: `/pages/home/unOutPaid?data=${encodeURIComponent(JSON.stringify(orderData))}`
+        })
+      } else {
+        uni.showToast({ title: res.data.message || '下单失败', icon: 'none' })
+      }
+    },
+    fail: err => {
+      console.error('下单失败:', err)
+      uni.showToast({ title: '网络异常', icon: 'none' })
+    }
   })
 }
 

@@ -157,7 +157,7 @@ const onPayClick = () => {
     method: 'POST',
     data: {
       openid: userInfo.openId,         // 当前用户的 openid，用于标识微信身份
-      total: 1,                         // 支付金额（单位：分，这里是 1 分 = 0.01 元）
+      total:  totalPrice.value.toFixed(2),        // 支付金额（单位：分，这里是 1 分 = 0.01 元）
       description: '桂林米粉 + 饮料'    // 商品描述
     },
     success(res) {
