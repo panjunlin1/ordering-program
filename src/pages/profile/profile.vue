@@ -449,7 +449,7 @@ export default {
         });
         return;
       }
-
+      //余下功能仅作示范，后期可通过onclick实习跳转对应的页面或功能
       switch(index) {
         case 0:
           uni.showToast({title: '商城功能开发中', icon: 'none'});
