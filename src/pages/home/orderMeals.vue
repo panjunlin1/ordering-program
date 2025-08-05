@@ -213,6 +213,8 @@ const toggleCart = () => {
 onMounted(() => {
   fetchShops()
 })
+
+
 const onCheckout = () => {
   const selectedIds = Object.keys(selectedDishes.value)
   const productList = selectedIds.map(dishId => {
@@ -224,8 +226,6 @@ const onCheckout = () => {
       price: dish.price,
       quantity: selectedDishes.value[dishId],
       imgUrl: dish.image,
-      spec: dish.spec || ''
-      // 去掉 shopId 和 shopName，改用 currentShop 统一传递
     }
   }).filter(Boolean)
 
@@ -238,22 +238,61 @@ const onCheckout = () => {
     id: currentShop.value?.id,
     name: currentShop.value?.shopName,
     phone: currentShop.value?.phone || '',
-    address: currentShop.value?.address|| ''
+    address: currentShop.value?.address || ''
   }
+
+  const cachedUser = wx.getStorageSync('userInfo')
 
   const orderData = {
     products: productList,
-    store
+    store,
+    userId: cachedUser?.userId || '',
+    diningChoice: '堂食',
+    total_price: totalPrice.value,
+    status: 0,
+    payment_method: '微信'
   }
 
-  console.log('订单结算数据:', orderData)
+  console.log('📦 发起下单请求的数据:', orderData)
 
+  // ✅ 请求创建订单
+  uni.request({
+    url: baseUrl + '/api/orders/createOrder',
+    method: 'POST',
+    data: orderData,
+    header: {
+      'Content-Type': 'application/json',
+    },
+    success: res => {
+      if (res.data && res.data.code === 200) {
+        const orderNo = res.data.data?.orderNo
+        if (!orderNo) {
+          uni.showToast({ title: '订单编号获取失败', icon: 'none' })
+          return
+        }
 
-  uni.navigateTo({
-    url: `/pages/home/unpaid?data=${encodeURIComponent(JSON.stringify(orderData))}`
+        console.log('✅ 创建订单成功，订单号:', orderNo)
+
+        // 将 orderNo 添加到原始 orderData 中传入结算页
+        const finalOrderData = {
+          ...orderData,
+          orderNo
+        }
+
+        uni.navigateTo({
+          url: `/pages/home/unpaid?data=${encodeURIComponent(JSON.stringify(finalOrderData))}`
+        })
+
+      } else {
+        uni.showToast({ title: res.data.message || '下单失败', icon: 'none' })
+      }
+    },
+    fail: err => {
+      console.error('❌ 下单请求失败:', err)
+      uni.showToast({ title: '网络异常', icon: 'none' })
+    }
   })
 }
-
 
 
 </script>

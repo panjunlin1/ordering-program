@@ -129,7 +129,7 @@ const totalPrice = computed(() => {
 
 
 //运费
-const deliveryFee = ref(10)
+const deliveryFee = ref(0)
 
 const payableAmount = computed(() => {
   return totalPrice.value + deliveryFee.value
