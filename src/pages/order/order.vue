@@ -275,9 +275,9 @@ const filterSummaryText = computed(() => {
   z-index: 999;
 }
 
-/* 顶部橙色区域 */
+/* 顶部区域 */
 .top-orange {
-  background-color: #FF8F1F;
+  background-color: #08391f;
   height: 11vh;
   padding-top: 5vh;
 }
@@ -383,7 +383,7 @@ const filterSummaryText = computed(() => {
   color: #666;
   padding: 5rpx 20rpx;
   border-radius: 10px;
-  border: 1px solid red;
+  border: 1px solid #08391f;
 }
 
 .order-shop {

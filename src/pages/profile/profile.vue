@@ -2,7 +2,7 @@
   <view class="container">
     <!-- 顶部背景区域 -->
     <view class="top-section">
-      <image class="bg-img" src="" mode="aspectFill" />
+      <image class="bg-img" src="" mode="aspectFill"/>
       <view class="card">
         <view class="user-header">
           <image
@@ -59,14 +59,14 @@
         <!-- 余额、券 -->
         <view class="summary">
           <view class="summary-item" @tap="handleSummaryTap('balance')">
-            <image src="/static/profile-icons/钱包.png" class="summary-icon" mode="widthFix" />
+            <image src="/static/profile-icons/钱包.png" class="summary-icon" mode="widthFix"/>
             <view class="summary-info">
               <text class="summary-label">余额</text>
               <text class="summary-value">￥{{ balance }}</text>
             </view>
           </view>
           <view class="summary-item" @tap="handleSummaryTap('coupons')">
-            <image src="/static/profile-icons/优惠券.png" class="summary-icon" mode="widthFix" />
+            <image src="/static/profile-icons/优惠券.png" class="summary-icon" mode="widthFix"/>
             <view class="summary-info">
               <text class="summary-label">优惠券</text>
               <text class="summary-value">{{ coupons }} 张</text>
@@ -81,11 +81,13 @@
       <!-- 生日好礼 -->
       <view class="gift-box">
         <!-- 生日蛋糕图标 -->
-        <image class="gift-icon" src="/static/profile-icons/生日.png" mode="widthFix" />
+        <image class="gift-icon" src="/static/profile-icons/生日.png" mode="widthFix"/>
         <view class="gift-content">
           <text class="gift-title">生日专属好礼</text>
           <text class="gift-sub">
-            {{ formattedBirthday ? `您的生日是${formattedBirthday}，当天可前往前台领取专属福利` : '完善生日信息，领取专属福利' }}
+            {{
+              formattedBirthday ? `您的生日是${formattedBirthday}，当天可前往前台领取专属福利` : '完善生日信息，领取专属福利'
+            }}
           </text>
         </view>
         <!-- 注册按钮，仅非会员显示 -->
@@ -111,7 +113,7 @@
             @tap="onFeatureTap(index)"
         >
           <view class="grid-icon-container">
-            <image :src="item.icon" class="grid-icon" @error="handleImageError" />
+            <image :src="item.icon" class="grid-icon" @error="handleImageError"/>
             <text class="grid-label">{{ item.label }}</text>
           </view>
         </view>
@@ -154,6 +156,8 @@
 </template>
 
 <script>
+import baseUrl from "@/config";
+
 export default {
   data() {
     return {
@@ -249,7 +253,7 @@ export default {
     },
     fetchMemberWithCoupons() {
       uni.request({
-        url: 'https://1hj114ab57208.vicp.fun/manager/member/listWithCoupons',
+        url: baseUrl + '/manager/member/listWithCoupons',
         method: 'GET',
         success: (res) => {
           // console.log('获取到的全部会员数据:', res.data);
@@ -317,7 +321,7 @@ export default {
         }
       }
       uni.request({
-        url: 'https://1hj114ab57208.vicp.fun/manager/coupon-details',
+        url: baseUrl + '/manager/coupon-details',
         method: 'GET',
         success: (res) => {
           this.loadingCoupons = false;
@@ -444,13 +448,13 @@ export default {
           },
           fail: (err) => {
             console.error('跳转失败', err);
-            uni.showToast({ title: '跳转失败', icon: 'none' });
+            uni.showToast({title: '跳转失败', icon: 'none'});
           }
         });
         return;
       }
       //余下功能仅作示范，后期可通过onclick实习跳转对应的页面或功能
-      switch(index) {
+      switch (index) {
         case 0:
           uni.showToast({title: '商城功能开发中', icon: 'none'});
           break;
@@ -852,6 +856,7 @@ export default {
   margin-top: 15rpx;
   font-weight: 500;
 }
+
 .coupon-modal {
   position: fixed;
   top: 0;
@@ -916,6 +921,7 @@ export default {
   overflow-y: auto;
   max-height: calc(70vh - 120rpx);
 }
+
 .coupon-item {
   background-color: #f9f9f9;
   border-radius: 15rpx;

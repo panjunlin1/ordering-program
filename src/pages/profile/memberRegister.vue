@@ -2,7 +2,7 @@
   <view class="container" style="padding: 20px;">
     <view class="form-group">
       <label>会员UID（自动生成）</label>
-      <input type="text" :value="memberUid" readonly class="input-disabled" />
+      <input type="text" :value="memberUid" readonly class="input-disabled"/>
     </view>
 
     <view class="form-group">
@@ -19,7 +19,7 @@
 
     <view class="form-group">
       <label>姓名</label>
-      <input type="text" v-model="userName" placeholder="请输入姓名" class="input" :disabled="registerSuccess" />
+      <input type="text" v-model="userName" placeholder="请输入姓名" class="input" :disabled="registerSuccess"/>
     </view>
 
     <view class="form-group">
@@ -51,6 +51,8 @@
 </template>
 
 <script>
+import baseUrl from "@/config";
+
 export default {
   data() {
     return {
@@ -68,7 +70,7 @@ export default {
   methods: {
     fetchMaxUid() {
       uni.request({
-        url: 'https://1hj114ab57208.vicp.fun/manager/member/list',
+        url: baseUrl + '/manager/member/list',
         method: 'GET',
         success: (res) => {
           if (res.data && Array.isArray(res.data)) {
@@ -96,16 +98,16 @@ export default {
 
     registerMember() {
       if (!this.userPhone || this.userPhone.length !== 11) {
-        uni.showToast({ title: '请输入有效的11位手机号', icon: 'none' });
+        uni.showToast({title: '请输入有效的11位手机号', icon: 'none'});
         return;
       }
       if (!this.userName) {
-        uni.showToast({ title: '请输入姓名', icon: 'none' });
+        uni.showToast({title: '请输入姓名', icon: 'none'});
         return;
       }
 
       this.loading = true;
-      const genderMap = { 0: 0, 1: 1, 2: 2 };
+      const genderMap = {0: 0, 1: 1, 2: 2};
 
       const memberData = {
         uid: this.memberUid,
@@ -119,13 +121,13 @@ export default {
       };
 
       uni.request({
-        url: 'https://1hj114ab57208.vicp.fun/manager/member/add',
+        url: baseUrl+'/manager/member/add',
         method: 'POST',
         data: memberData,
         success: () => {
           // 注册请求成功后，重新获取会员列表进行验证
           uni.request({
-            url: 'https://1hj114ab57208.vicp.fun/manager/member/list',
+            url: baseUrl + '/manager/member/list',
             method: 'GET',
             success: (res) => {
               if (res.data && Array.isArray(res.data)) {
@@ -169,7 +171,7 @@ export default {
           });
         },
         fail: () => {
-          uni.showToast({ title: '网络错误，注册失败', icon: 'none' });
+          uni.showToast({title: '网络错误，注册失败', icon: 'none'});
           this.loading = false;
         }
       });
