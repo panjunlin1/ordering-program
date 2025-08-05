@@ -239,7 +239,7 @@ const onPayClick = () => {
   min-height: 220rpx;
   max-height: 350rpx;
   /* 修改为从上到下的渐变方向，且起始红色更深 */
-  background: linear-gradient(180deg, #e60000, #ff7a7a);
+  background: linear-gradient(180deg, #238451, #6ada00);
   position: relative;
   width: 100%; /* 确保宽度充满屏幕 */
   display: flex;
