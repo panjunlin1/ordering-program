@@ -159,7 +159,7 @@ const onCheckout = () => {
       name: souvenir.souvenirName,
       price: souvenir.price,
       quantity: selectedSouvenir.value[souvenirId],
-      imgUrl: souvenir.image,
+      image: souvenir.image,
       spec: souvenir.spec || ''
       // 去掉 shopId 和 shopName，改用 currentShop 统一传递
     }
@@ -170,15 +170,52 @@ const onCheckout = () => {
     return
   }
 
+  const cachedUser = wx.getStorageSync('userInfo')
+  console.log('cachedUser', cachedUser)
   const orderData = {
     products: productList,
+    userId: cachedUser?.userId || '',
+    total_price: totalPrice.value,
+    status: 0,
   }
 
   console.log('订单结算数据:', orderData)
 
+  // ✅ 请求创建订单
+  uni.request({
+    url: baseUrl + '/api/orderSouvenir/createOrder',
+    method: 'POST',
+    data: orderData,
+    header: {
+      'Content-Type': 'application/json',
+    },
+    success: res => {
+      if (res.data && res.data.code === 200) {
+        const purchaseNo = res.data.data?.purchaseNo
+        if (!purchaseNo) {
+          uni.showToast({ title: '订单编号获取失败', icon: 'none' })
+          return
+        }
 
-  uni.navigateTo({
-    url: `/pages/home/souvenir/souvenirPaid?data=${encodeURIComponent(JSON.stringify(orderData))}`
+        console.log('✅ 创建订单成功，订单号:', purchaseNo)
+
+        // 将 purchaseNo 添加到原始 orderData 中传入结算页
+        const finalOrderData = {
+          ...orderData,
+          purchaseNo
+        }
+
+        uni.navigateTo({
+          url: `/pages/home/souvenir/souvenirPaid?data=${encodeURIComponent(JSON.stringify(finalOrderData))}`
+        })
+      } else {
+        uni.showToast({ title: res.data.message || '下单失败', icon: 'none' })
+      }
+    },
+    fail: err => {
+      console.error('❌ 下单请求失败:', err)
+      uni.showToast({ title: '网络异常', icon: 'none' })
+    }
   })
 }
 //显示描述
