@@ -35,7 +35,7 @@
       <view class="product-list">
         <view class="product-item" v-for="(souvenir, index) in productList" :key="index">
           <view class="product-img">
-            <image :src="souvenir.imgUrl || defaultImg" mode="aspectFill" />
+            <image :src="souvenir.image || defaultImg" mode="aspectFill" />
           </view>
           <view class="product-info">
             <view class="product-name">{{ souvenir.name || '未知商品' }}</view>
@@ -100,12 +100,20 @@ function getPrice(price) {
   return typeof price === 'number' ? price.toFixed(2) : '0.00'
 }
 
+// 先定义接收变量
+const purchaseNo = ref('')
+
 onLoad((query) => {
   if (query.data) {
     try {
       const parsed = JSON.parse(decodeURIComponent(query.data))
 
       console.log('✅ onLoad 接收到的 query:', parsed)
+
+      // 新增：接收订单编号
+      purchaseNo.value = parsed.purchaseNo || ''
+      console.log('接收到的订单编号:', purchaseNo.value)
+
 
       // 设置商品
       if (Array.isArray(parsed.products)) {
@@ -129,7 +137,7 @@ const totalPrice = computed(() => {
 
 
 //运费
-const deliveryFee = ref(0)
+const deliveryFee = ref(10)
 
 const payableAmount = computed(() => {
   return totalPrice.value + deliveryFee.value
@@ -171,8 +179,24 @@ const onPayClick = () => {
 
         // 支付成功回调
         success() {
-          wx.showToast({title: '支付成功'})
-          // 你可以在这里跳转页面、刷新订单状态等
+          wx.showToast({ title: '支付成功' });
+
+          // 更新订单状态 + 保存备注
+          wx.request({
+            url: baseUrl + '/api/orderSouvenir/paySuccess',
+            method: 'POST',
+            data: {
+              purchaseNo: purchaseNo.value,
+              remark: orderRemark.value  // 备注传给后端
+            },
+            success() {
+              console.log('订单状态更新为已支付，备注保存成功');
+              wx.switchTab({ url: '/pages/home/index' })
+            },
+            fail(err) {
+              console.error('更新订单状态失败', err);
+            }
+          });
         },
 
         // 支付失败或用户取消回调
