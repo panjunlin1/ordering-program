@@ -154,6 +154,8 @@
 </template>
 
 <script>
+import baseUrl from "@/config";
+
 export default {
   data() {
     return {
@@ -249,7 +251,7 @@ export default {
     },
     fetchMemberWithCoupons() {
       uni.request({
-        url: 'https://1hj114ab57208.vicp.fun/manager/member/listWithCoupons',
+        url: baseUrl +'/manager/member/listWithCoupons',
         method: 'GET',
         success: (res) => {
           // console.log('获取到的全部会员数据:', res.data);
@@ -317,7 +319,7 @@ export default {
         }
       }
       uni.request({
-        url: 'https://1hj114ab57208.vicp.fun/manager/coupon-details',
+        url: baseUrl +'/manager/coupon-details',
         method: 'GET',
         success: (res) => {
           this.loadingCoupons = false;

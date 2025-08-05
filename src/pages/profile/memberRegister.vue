@@ -51,6 +51,8 @@
 </template>
 
 <script>
+import baseUrl from "@/config";
+
 export default {
   data() {
     return {
@@ -119,13 +121,13 @@ export default {
       };
 
       uni.request({
-        url: 'https://1hj114ab57208.vicp.fun/manager/member/add',
+        url: baseUrl +'/manager/member/add',
         method: 'POST',
         data: memberData,
         success: () => {
           // 注册请求成功后，重新获取会员列表进行验证
           uni.request({
-            url: 'https://1hj114ab57208.vicp.fun/manager/member/list',
+            url: baseUrl +'/manager/member/list',
             method: 'GET',
             success: (res) => {
               if (res.data && Array.isArray(res.data)) {
