@@ -29,7 +29,7 @@
       <view class="product-list">
         <view class="product-item" v-for="(dish, index) in productList" :key="index">
           <view class="product-img">
-            <image :src="dish.imgUrl || defaultImg" mode="aspectFill" />
+            <image :src="dish.image || defaultImg" mode="aspectFill" />
           </view>
           <view class="product-info">
             <view class="product-name">{{ dish.name || '未知商品' }}</view>
@@ -181,7 +181,7 @@ const onPayClick = () => {
         signType: payData.signType,     // 签名算法（一般为 RSA 或 MD5）
         paySign: payData.paySign,       // 支付签名
 
-// 支付成功回调
+        // 支付成功回调
         success() {
           wx.showToast({ title: '支付成功' });
 

@@ -53,15 +53,15 @@
           <!-- 数据统计 -->
           <view class="card-stats">
             <view class="stat-item">
-              <view class="stat-value">--</view>
+              <view class="stat-value">{{ balance }}</view>
               <view class="stat-label">余额</view>
             </view>
             <view class="stat-item">
-              <view class="stat-value">--</view>
+              <view class="stat-value">{{ points }}</view>
               <view class="stat-label">积分</view>
             </view>
             <view class="stat-item">
-              <view class="stat-value">--</view>
+              <view class="stat-value">{{ coupons }}</view>
               <view class="stat-label">券</view>
             </view>
           </view>
@@ -126,14 +126,22 @@ const userInfo = ref({
   avatarUrl: '/static/home-icons/默认头像.png'
 })
 
+// 数据统计
+const balance = ref('--')
+const points = ref('--')
+const coupons = ref('--')
+
 // 页面加载时从本地缓存恢复登录状态
 onMounted(() => {
   const cachedUser = wx.getStorageSync('userInfo')
-  if (cachedUser && cachedUser.nickname) {
+  if (cachedUser && cachedUser.phone) { // 用phone判断登录状态更可靠
     userInfo.value = cachedUser
     isLoggedIn.value = true
+    // 登录状态恢复后，获取会员数据和优惠券数量
+    getMemberData(cachedUser.phone)
+    getCouponCountByPhone(cachedUser.phone) // 按手机号获取优惠券
   }
-  console.log('userInfo:', userInfo)
+  console.log('初始化用户信息:', userInfo.value)
 })
 
 // 微信授权手机号登录
@@ -144,7 +152,7 @@ function onGetPhoneNumber(e) {
     wx.login({
       success: res => {
         const code = res.code
-        console.log('微信 code：', code)
+        console.log('微信登录code：', code)
 
         wx.request({
           url: baseUrl+'/login',
@@ -155,77 +163,127 @@ function onGetPhoneNumber(e) {
             iv
           },
           success: res => {
-            console.log('登录成功', res.data)
+            console.log('登录接口返回:', res.data)
 
-            if (res.data.code === 200) {
+            if (res.data.code === 200 && res.data.data?.users?.phone) {
               wx.showToast({ title: '登录成功', icon: 'success' })
 
               const data = res.data.data
               userInfo.value = {
-                phone: data.users.phone,
+                phone: data.users.phone, // 确保手机号存在
                 openId: data.users.openid,
                 token: data.token,
-                nickname: data.users.username,
-                avatarUrl: data.users.avatarUrl,
-                userId: data.users.id
+                nickname: data.users.username || '亲爱的用户',
+                avatarUrl: data.users.avatarUrl || '/static/home-icons/默认头像.png'
               }
               isLoggedIn.value = true
 
-              // 缓存用户信息
+              // 缓存用户信息（包含phone）
               wx.setStorageSync('userInfo', userInfo.value)
+
+              // 登录成功后，获取数据
+              getMemberData(userInfo.value.phone)
+              getCouponCountByPhone(userInfo.value.phone) // 按手机号查优惠券
 
             } else {
               wx.showToast({
-                title: '登录失败',
+                title: '登录失败：未获取到手机号',
                 icon: 'none'
               })
             }
           },
           fail: err => {
-            console.error('登录失败', err)
-            wx.showToast({
-              title: '登录失败',
-              icon: 'none'
-            })
+            console.error('登录请求失败:', err)
+            wx.showToast({ title: '网络错误', icon: 'none' })
           }
         })
       },
       fail: err => {
-        console.error('wx.login 失败', err)
+        console.error('wx.login失败:', err)
+        wx.showToast({ title: '登录失败', icon: 'none' })
       }
     })
   } else {
-    console.warn('用户拒绝手机号授权：', e.detail.errMsg)
-    wx.showToast({
-      title: '需要授权手机号',
-      icon: 'none'
-    })
+    console.warn('用户拒绝授权手机号:', e.detail.errMsg)
+    wx.showToast({ title: '请授权手机号登录', icon: 'none' })
   }
 }
 
+// 获取会员数据（余额、积分）
+function getMemberData(phone) {
+  if (!phone) return
 
-//跳转页面
-function goToOrderingPage() {
-  uni.navigateTo({
-    url: '/pages/home/orderMeals'
+  wx.request({
+    url: baseUrl + '/customer/info-with-balance',
+    method: 'GET',
+    data: { phone: phone },
+    success: res => {
+      console.log('会员余额/积分数据:', res.data)
+      if (res.data) {
+        // 处理余额（Double类型转保留两位小数）
+        balance.value = res.data.balance !== null
+            ? res.data.balance.toFixed(2)
+            : '--'
+        // 处理积分
+        points.value = res.data.points ?? '--' // 空值显示--
+      }
+    },
+    fail: err => {
+      console.error('获取余额积分失败:', err)
+      balance.value = '--'
+      points.value = '--'
+    }
   })
+}
+
+// 核心修改：按手机号获取优惠券数量（调用customer接口）
+function getCouponCountByPhone(phone) {
+  if (!phone) {
+    coupons.value = '--'
+    return
+  }
+
+  wx.request({
+    url: baseUrl + '/customer/coupon-details', // 新接口路径
+    method: 'GET',
+    data: { phone: phone }, // 传递手机号参数
+    success: res => {
+      console.log('优惠券接口返回:', res.data)
+      if (Array.isArray(res.data)) {
+        // 累加所有优惠券的quantity得到总数量
+        const total = res.data.reduce((sum, item) => {
+          // 确保quantity是数字（容错处理）
+          const qty = Number(item.quantity) || 0
+          return sum + qty
+        }, 0)
+        coupons.value = total.toString() || '0'
+      } else {
+        coupons.value = '0' // 非数组返回0
+      }
+    },
+    fail: err => {
+      console.error('获取优惠券数量失败:', err)
+      coupons.value = '--'
+    }
+  })
+}
+
+// 跳转页面
+function goToOrderingPage() {
+  uni.navigateTo({ url: '/pages/home/orderMeals' })
 }
 
 function goToTakeOutPage() {
-  uni.navigateTo({
-    url: '/pages/home/takeOutMeals'
-  })
+  uni.navigateTo({ url: '/pages/home/takeOutMeals' })
 }
-//跳转好物选购页面
+
 function goToSouvenirOrderingPage() {
-  uni.navigateTo({
-    url: '/pages/home/souvenir/souvenirOrdering'
-  })
+  uni.navigateTo({ url: '/pages/home/souvenir/souvenirOrdering' })
 }
 </script>
 
-
 <style scoped>
+/* 样式保持不变 */
 .container {
   width: 100%;
 }
@@ -255,7 +313,6 @@ function goToSouvenirOrderingPage() {
   align-items: center;
 }
 
-/* 顶部用餐积分 */
 .promo-header {
   background-color: #08391f;
   color: #f5e4c7;
@@ -277,7 +334,6 @@ function goToSouvenirOrderingPage() {
   font-size: 30rpx;
 }
 
-/* 会员卡片 */
 .member-card {
   background-color: white;
   width: 90%;
@@ -370,7 +426,7 @@ function goToSouvenirOrderingPage() {
   color: gray;
 }
 
-/* 功能入口 */
+/* 功能区域 */
 .features {
   margin-top: 14vh;
   display: flex;
@@ -392,12 +448,6 @@ function goToSouvenirOrderingPage() {
   height: 60%;
   margin-top: 18px;
   margin-left: 0px;
-}
-
-.feature-title {
-  font-size: 23px;
-  font-weight: bold;
-  color: #003300;
 }
 
 .feature-desc {
