@@ -155,7 +155,7 @@ function onGetPhoneNumber(e) {
         console.log('微信登录code：', code)
 
         wx.request({
-          url: baseUrl + '/login',
+          url: baseUrl+'/login',
           method: 'POST',
           data: {
             code,

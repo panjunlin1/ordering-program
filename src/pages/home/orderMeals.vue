@@ -45,7 +45,7 @@
               :key="dish.id"
               class="dish-item"
           >
-            <image :src="dish.image || 'https://picsum.photos/200/200'" class="dish-image" mode="aspectFill" />
+            <image :src="dish.image || 'https://picsum.photos/200/200'" class="dish-image" mode="aspectFill"/>
             <view class="dish-info">
               <view class="dish-name">{{ dish.dishName }}</view>
               <view class="dish-description">{{ dish.description }}</view>
@@ -67,7 +67,7 @@
           <view class="cart-info">
             <text class="cart-icon">🛒</text>
             <text class="item-count">{{ totalCount }}</text>
-            <text class="total-price">总价: ￥{{ totalPrice.toFixed(2)}}</text>
+            <text class="total-price">总价: ￥{{ totalPrice.toFixed(2) }}</text>
           </view>
           <button class="checkout-btn" @click="onCheckout">结算</button>
         </view>
@@ -100,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import baseUrl from "@/config";
 
 
@@ -152,20 +152,20 @@ function selectShop(shop) {
 
 const fetchShops = async () => {
   const res = await uni.request({
-    url: baseUrl +'/manager/shop/all',
+    url: baseUrl + `/manager/shop/all`,
     method: 'GET'
   })
   if (res.statusCode === 200 && res.data.code === 200 && Array.isArray(res.data.data)) {
     shops.value = res.data.data
   } else {
-    uni.showToast({ title: '门店列表加载失败', icon: 'error' })
+    uni.showToast({title: '门店列表加载失败', icon: 'error'})
   }
 }
 
 const fetchMenu = async (shopId) => {
   if (!shopId) return
   const res = await uni.request({
-    url: baseUrl +`/shop/getDishes?shopId=${shopId}`,
+    url: baseUrl + `/shop/getDishes?shopId=${shopId}`,
     method: 'GET'
   })
   if (res.statusCode === 200 && res.data.code === 200 && Array.isArray(res.data.data)) {
@@ -182,13 +182,13 @@ const fetchMenu = async (shopId) => {
 
 const increaseCount = (dish) => {
   if (!selectedDishes.value[dish.id]) selectedDishes.value[dish.id] = 0
-  selectedDishes.value = { ...selectedDishes.value, [dish.id]: selectedDishes.value[dish.id] + 1 }
+  selectedDishes.value = {...selectedDishes.value, [dish.id]: selectedDishes.value[dish.id] + 1}
 }
 
 const decreaseCount = (dish) => {
   if (!dish || !selectedDishes.value[dish.id]) return
   if (selectedDishes.value[dish.id] > 0) {
-    selectedDishes.value = { ...selectedDishes.value, [dish.id]: selectedDishes.value[dish.id] - 1 }
+    selectedDishes.value = {...selectedDishes.value, [dish.id]: selectedDishes.value[dish.id] - 1}
     if (selectedDishes.value[dish.id] === 0) {
       delete selectedDishes.value[dish.id]
     }
@@ -231,7 +231,7 @@ const onCheckout = () => {
   }).filter(Boolean)
 
   if (productList.length === 0) {
-    uni.showToast({ title: '请先选择商品', icon: 'none' })
+    uni.showToast({title: '请先选择商品', icon: 'none'})
     return
   }
 
@@ -268,7 +268,7 @@ const onCheckout = () => {
       if (res.data && res.data.code === 200) {
         const orderNo = res.data.data?.orderNo
         if (!orderNo) {
-          uni.showToast({ title: '订单编号获取失败', icon: 'none' })
+          uni.showToast({title: '订单编号获取失败', icon: 'none'})
           return
         }
 
@@ -285,12 +285,12 @@ const onCheckout = () => {
         })
 
       } else {
-        uni.showToast({ title: res.data.message || '下单失败', icon: 'none' })
+        uni.showToast({title: res.data.message || '下单失败', icon: 'none'})
       }
     },
     fail: err => {
       console.error('❌ 下单请求失败:', err)
-      uni.showToast({ title: '网络异常', icon: 'none' })
+      uni.showToast({title: '网络异常', icon: 'none'})
     }
   })
 }
@@ -311,7 +311,10 @@ const onCheckout = () => {
 /* 门店选择遮罩弹窗 */
 .shop-select-mask {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   z-index: 1200;
   display: flex;
@@ -357,6 +360,7 @@ const onCheckout = () => {
   transition: background-color 0.3s;
   border: 1rpx solid transparent; /* 占位防跳动 */
 }
+
 .shop-item:hover {
   background-color: #2d6035;
   border-color: #a19e9e; /* 悬停时边框显现 */
@@ -378,6 +382,7 @@ const onCheckout = () => {
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.25);
   border: 2rpx solid #08391f; /* 边框增强立体感 */
 }
+
 .change-shop-btn {
   margin-left: 20rpx;
   color: #f5d7a5;
@@ -403,6 +408,7 @@ const onCheckout = () => {
   flex-direction: column;
   gap: 20rpx;
 }
+
 .dish-item {
   display: flex;
   background-color: #fff;
@@ -412,10 +418,12 @@ const onCheckout = () => {
   border: 2rpx solid #409e3a; /* 新增边框 */
   transition: box-shadow 0.3s, border-color 0.3s;
 }
+
 .dish-item:hover {
   box-shadow: 0 6rpx 14rpx rgba(64, 158, 58, 0.35);
   border-color: #08391f;
 }
+
 .dish-image {
   width: 180rpx;
   height: 140rpx;
@@ -423,20 +431,24 @@ const onCheckout = () => {
   border-top-left-radius: 16rpx;
   border-bottom-left-radius: 16rpx;
 }
+
 .dish-info {
   flex: 1;
   padding: 20rpx;
 }
+
 .dish-name {
   font-size: 30rpx;
   font-weight: 600;
   color: #08391f;
 }
+
 .dish-description {
   font-size: 24rpx;
   color: #666;
   margin: 6rpx 0;
 }
+
 .dish-price {
   font-size: 28rpx;
   color: #409e3a;
@@ -451,6 +463,7 @@ const onCheckout = () => {
   gap: 12rpx;
   padding: 0 20rpx;
 }
+
 .btn-action,
 .btn-small {
   width: 52rpx;
@@ -467,6 +480,7 @@ const onCheckout = () => {
   transition: background-color 0.2s;
   box-shadow: 0 2rpx 6rpx rgba(64, 158, 58, 0.6);
 }
+
 .btn-action:hover,
 .btn-small:hover {
   background: #2e7d32;
@@ -487,9 +501,11 @@ const onCheckout = () => {
   overflow: visible;
   transition: height 0.3s ease;
 }
+
 .cart-panel.closed {
   height: 100rpx;
 }
+
 .cart-panel.open {
   max-height: 80vh;
   overflow-y: auto;
@@ -507,16 +523,19 @@ const onCheckout = () => {
   border-top-right-radius: 20rpx;
   border-bottom: 3rpx solid #409e3a; /* 下边框加强视觉分割 */
 }
+
 .cart-info {
   display: flex;
   align-items: center;
   gap: 16rpx;
   flex: 1;
 }
+
 .total-price {
   font-weight: bold;
   font-size: 30rpx;
 }
+
 .checkout-btn {
   background: #f5d7a5;
   color: #08391f;
@@ -528,6 +547,7 @@ const onCheckout = () => {
   box-shadow: 0 2rpx 8rpx rgba(245, 215, 165, 0.6);
   transition: background-color 0.3s;
 }
+
 .checkout-btn:hover {
   background-color: #e6c989;
 }
@@ -536,11 +556,13 @@ const onCheckout = () => {
 .cart-content {
   padding: 20rpx;
 }
+
 .empty-cart {
   text-align: center;
   color: #a19e9e;
   font-size: 28rpx;
 }
+
 .cart-item {
   display: flex;
   align-items: center;
@@ -548,6 +570,7 @@ const onCheckout = () => {
   font-size: 28rpx;
   gap: 16rpx;
 }
+
 .cart-item-image {
   width: 60rpx;
   height: 60rpx;
@@ -556,21 +579,25 @@ const onCheckout = () => {
   flex-shrink: 0;
   border: 1.5rpx solid #409e3a; /* 给小图加边框 */
 }
+
 .cart-item-info {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
 .actions-right {
   display: flex;
   align-items: center;
   gap: 10rpx;
   padding-right: 20rpx;
 }
+
 .actions-right .btn-small:first-child {
   order: 1;
 }
+
 .actions-right .item-count {
   order: 2;
   width: 40rpx;
@@ -579,6 +606,7 @@ const onCheckout = () => {
   font-weight: bold;
   color: #000;
 }
+
 .actions-right .btn-small:last-child {
   order: 3;
 }
