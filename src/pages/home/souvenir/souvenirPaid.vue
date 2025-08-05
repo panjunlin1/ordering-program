@@ -11,20 +11,26 @@
     <!-- 浮动卡片：取餐方式 + 门店信息 + 联系电话 -->
     <view class="card-floating card-location">
         <!-- 好物显示收件信息（从数据库获取的模拟数据） -->
-        <view class="delivery-info">
-          <view class="delivery-item">
-            <text class="contact-label">收件人:</text>
-            <text class="delivery-value">{{ userInfo.name }}</text>
-          </view>
-          <view class="delivery-item">
-            <text class="contact-label">联系电话:</text>
-            <text class="delivery-value">{{ userInfo.phone }}</text>
-          </view>
-          <view class="delivery-item">
-            <text class="contact-label">收货地址:</text>
-            <text class="delivery-value">{{ userInfo.address }}</text>
-          </view>
-        </view>
+      <view class="delivery-item">
+        <text class="contact-label">收件人:</text>
+        <text class="delivery-value">{{ selectedAddress ? selectedAddress.receiverName : '请选择地址' }}</text>
+      </view>
+      <view class="delivery-item">
+        <text class="contact-label">联系电话:</text>
+        <text class="delivery-value">{{ selectedAddress ? selectedAddress.phoneNumber : '请选择地址' }}</text>
+      </view>
+      <view class="delivery-item">
+        <text class="contact-label">收货地址:</text>
+        <picker
+            @change="onAddressChange"
+            :value="addressList.findIndex(a => a.id === selectedAddress?.id)"
+            :range="formattedAddressList">
+          <text class="delivery-value">
+            {{ selectedAddress ? selectedAddress.address : '请选择地址' }}
+          </text>
+          <text class="arrow-icon">▼</text>
+        </picker>
+      </view>
     </view>
 
     <view class="card-floating card-products">
@@ -78,13 +84,22 @@
   </view>
 </template>
 
-<script setup>
-import {computed, ref} from 'vue'
+<script setup lang="ts">
+import {computed, ref, onMounted} from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import baseUrl from '../../../config.js'
 
+interface Address {
+  id: number
+  receiverName: string
+  phoneNumber: string
+  address: string
+  isDefault: boolean
+}
+
 // 订单备注
 const orderRemark = ref('')
+//地址id
 
 // 模拟用户信息（从数据库获取）
 const userInfo = ref({
@@ -92,6 +107,68 @@ const userInfo = ref({
   phone: '13812345678',  // 好物收件人电话
   address: '广西桂林市灵川县灵川镇XX小区3栋2单元501室'
 })
+//地址
+const selectedAddress = ref(null)
+const addressList = ref([])
+
+// 获取用户信息
+const getUserInfo = (): any => {
+  try {
+    const userInfo = uni.getStorageSync('userInfo');
+    console.log('从缓存中获取到的用户信息:', userInfo);
+    return userInfo || null;
+  } catch (e) {
+    console.error('获取用户信息失败:', e);
+    return null;
+  }
+};
+
+// 在script部分修改地址处理
+const formattedAddressList = computed(() => {
+  return addressList.value.map(addr =>
+      `${addr.receiverName} | ${addr.phoneNumber} | ${addr.address}`
+  )
+})
+
+// 获取用户ID
+const getUserId = (): number | null => {
+  try {
+    const userInfo = getUserInfo();
+    if (!userInfo) {
+      console.log('用户信息为空');
+      return null;
+    }
+
+    // 检查不同的可能字段
+    const userId = userInfo.userId || userInfo.id || userInfo.userid || null;
+    console.log('获取到的用户ID:', userId);
+    return userId;
+  } catch (e) {
+    console.error('获取用户ID失败:', e);
+    return null;
+  }
+};
+// 获取地址列表方法
+const fetchAddressList = async () => {
+  try {
+    const res = await uni.request({
+      url: `${baseUrl}/api/user/address/list/${getUserId()}`
+    })
+    addressList.value = res.data.data
+    selectedAddress.value = addressList.value.find(addr => addr.isDefault)
+  } catch (e) {
+    console.error('获取地址失败', e)
+  }
+}
+// 在onShow或onMounted中调用
+onMounted(() => {
+  fetchAddressList()
+})
+
+// 添加地址选择方法
+const onAddressChange = (e) => {
+  selectedAddress.value = addressList.value[e.detail.value]
+}
 
 const productList = ref([])
 
@@ -182,12 +259,14 @@ const onPayClick = () => {
           wx.showToast({ title: '支付成功' });
 
           // 更新订单状态 + 保存备注
+          const userAddressId = ref(selectedAddress.value?.id || 0);
           wx.request({
             url: baseUrl + '/api/orderSouvenir/paySuccess',
             method: 'POST',
             data: {
               purchaseNo: purchaseNo.value,
-              remark: orderRemark.value  // 备注传给后端
+              remark: orderRemark.value,
+              addressId: userAddressId.value  // 地址ID传给后端
             },
             success() {
               console.log('订单状态更新为已支付，备注保存成功');
@@ -220,6 +299,16 @@ const onPayClick = () => {
 </script>
 
 <style scoped>
+.arrow-icon {
+  margin-left: 8px;
+  color: #666;
+  font-size: 12px;
+}
+
+picker {
+  display: flex;
+  align-items: center;
+}
 .container {
   position: relative;
   background-color: #f7f7f7;
