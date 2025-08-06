@@ -143,6 +143,7 @@
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import baseUrl from '../../config.js'
+import { request } from '@/request'
 
 // 当前选中的 tab
 const activeTab = ref('堂食外卖')
@@ -168,21 +169,19 @@ onShow(() => {
 
   console.log('当前用户 ID：', userId)
 
-  wx.request({
+  request({
     url: baseUrl + `/api/orders/user/${userId}/details`,
-    method: 'GET',
-    success: res => {
-      if (res.data.code === 200) {
-        orders.value = res.data.data
-        console.log('订单数据：', orders.value)
-      } else {
-        wx.showToast({ title: '获取订单失败', icon: 'none' })
-      }
-    },
-    fail: err => {
-      console.error('请求失败:', err)
-      wx.showToast({ title: '请求失败', icon: 'none' })
+    method: 'GET'
+  }).then(res => {
+    if (res.data.code === 200) {
+      orders.value = res.data.data
+      console.log('订单数据：', orders.value)
+    } else {
+      wx.showToast({ title: '获取订单失败', icon: 'none' })
     }
+  }).catch(err => {
+    console.error('请求失败:', err)
+    wx.showToast({ title: '请求失败', icon: 'none' })
   })
 })
 

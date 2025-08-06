@@ -33,7 +33,7 @@
             </view>
 
             <view v-if="isLoggedIn" class="login-success">
-              <image class="vip-icon" src="/static/home-icons/会员图标.png" />
+              <image class="vip-icon" src="/static/home-icons/会员图标.png"/>
               <text class="vip-label">粉丝会员</text>
             </view>
 
@@ -106,8 +106,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import {onMounted, ref} from 'vue'
 import baseUrl from '../../config.js'
+import { request } from '@/request'  // 新引入封装请求
 
 // 轮播图列表
 const banners = [
@@ -147,15 +148,15 @@ onMounted(() => {
 // 微信授权手机号登录
 function onGetPhoneNumber(e) {
   if (e.detail.errMsg === 'getPhoneNumber:ok') {
-    const { encryptedData, iv } = e.detail
+    const {encryptedData, iv} = e.detail
 
     wx.login({
       success: res => {
         const code = res.code
         console.log('微信登录code：', code)
 
-        wx.request({
-          url: baseUrl+'/login',
+        uni.request({
+          url: baseUrl + '/login',
           method: 'POST',
           data: {
             code,
@@ -166,20 +167,25 @@ function onGetPhoneNumber(e) {
             console.log('登录接口返回:', res.data)
 
             if (res.data.code === 200 && res.data.data?.users?.phone) {
-              wx.showToast({ title: '登录成功', icon: 'success' })
+              wx.showToast({title: '登录成功', icon: 'success'})
 
               const data = res.data.data
+              console.log("data",data)
               userInfo.value = {
                 phone: data.users.phone, // 确保手机号存在
                 openId: data.users.openid,
                 token: data.token,
                 nickname: data.users.username || '亲爱的用户',
-                avatarUrl: data.users.avatarUrl || '/static/home-icons/默认头像.png'
+                avatarUrl: data.users.avatarUrl || '/static/home-icons/默认头像.png',
+                userId:data.users.id
               }
               isLoggedIn.value = true
 
+              wx.setStorageSync('token', data.token)
               // 缓存用户信息（包含phone）
               wx.setStorageSync('userInfo', userInfo.value)
+
+              console.log("缓存的信息：",userInfo.value)
 
               // 登录成功后，获取数据
               getMemberData(userInfo.value.phone)
@@ -194,91 +200,76 @@ function onGetPhoneNumber(e) {
           },
           fail: err => {
             console.error('登录请求失败:', err)
-            wx.showToast({ title: '网络错误', icon: 'none' })
+            wx.showToast({title: '网络错误', icon: 'none'})
           }
         })
       },
       fail: err => {
         console.error('wx.login失败:', err)
-        wx.showToast({ title: '登录失败', icon: 'none' })
+        wx.showToast({title: '登录失败', icon: 'none'})
       }
     })
   } else {
     console.warn('用户拒绝授权手机号:', e.detail.errMsg)
-    wx.showToast({ title: '请授权手机号登录', icon: 'none' })
+    wx.showToast({title: '请授权手机号登录', icon: 'none'})
   }
 }
 
-// 获取会员数据（余额、积分）
 function getMemberData(phone) {
   if (!phone) return
-
-  wx.request({
+  request({
     url: baseUrl + '/customer/info-with-balance',
     method: 'GET',
-    data: { phone: phone },
-    success: res => {
-      console.log('会员余额/积分数据:', res.data)
-      if (res.data) {
-        // 处理余额（Double类型转保留两位小数）
-        balance.value = res.data.balance !== null
-            ? res.data.balance.toFixed(2)
-            : '--'
-        // 处理积分
-        points.value = res.data.points ?? '--' // 空值显示--
-      }
-    },
-    fail: err => {
-      console.error('获取余额积分失败:', err)
-      balance.value = '--'
-      points.value = '--'
+    data: { phone }
+  }).then(res => {
+    console.log('会员余额/积分数据:', res.data)
+    if (res.data) {
+      balance.value = res.data.balance !== null
+          ? res.data.balance.toFixed(2)
+          : '--'
+      points.value = res.data.points ?? '--'
     }
+  }).catch(err => {
+    console.error('获取余额积分失败:', err)
+    balance.value = '--'
+    points.value = '--'
   })
 }
 
-// 核心修改：按手机号获取优惠券数量（调用customer接口）
 function getCouponCountByPhone(phone) {
   if (!phone) {
     coupons.value = '--'
     return
   }
-
-  wx.request({
-    url: baseUrl + '/customer/coupon-details', // 新接口路径
+  request({
+    url: baseUrl + '/customer/coupon-details',
     method: 'GET',
-    data: { phone: phone }, // 传递手机号参数
-    success: res => {
-      console.log('优惠券接口返回:', res.data)
-      if (Array.isArray(res.data)) {
-        // 累加所有优惠券的quantity得到总数量
-        const total = res.data.reduce((sum, item) => {
-          // 确保quantity是数字（容错处理）
-          const qty = Number(item.quantity) || 0
-          return sum + qty
-        }, 0)
-        coupons.value = total.toString() || '0'
-      } else {
-        coupons.value = '0' // 非数组返回0
-      }
-    },
-    fail: err => {
-      console.error('获取优惠券数量失败:', err)
-      coupons.value = '--'
+    data: { phone }
+  }).then(res => {
+    console.log('优惠券接口返回:', res.data)
+    if (Array.isArray(res.data)) {
+      const total = res.data.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
+      coupons.value = total.toString() || '0'
+    } else {
+      coupons.value = '0'
     }
+  }).catch(err => {
+    console.error('获取优惠券数量失败:', err)
+    coupons.value = '--'
   })
 }
 
 // 跳转页面
 function goToOrderingPage() {
-  uni.navigateTo({ url: '/pages/home/orderMeals' })
+  uni.navigateTo({url: '/pages/home/orderMeals'})
 }
 
 function goToTakeOutPage() {
-  uni.navigateTo({ url: '/pages/home/takeOutMeals' })
+  uni.navigateTo({url: '/pages/home/takeOutMeals'})
 }
 
 function goToSouvenirOrderingPage() {
-  uni.navigateTo({ url: '/pages/home/souvenir/souvenirOrdering' })
+  uni.navigateTo({url: '/pages/home/souvenir/souvenirOrdering'})
 }
 </script>
 

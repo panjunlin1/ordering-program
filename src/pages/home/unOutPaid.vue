@@ -92,6 +92,7 @@
 import {computed, ref} from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import baseUrl from '../../config.js'
+import {request} from "@/request";
 
 // 订单备注
 const orderRemark = ref('')
@@ -179,76 +180,65 @@ const payableAmount = computed(() => {
 })
 
 
+
 // 点击“微信支付”按钮时触发的函数
 const onPayClick = () => {
-  // 从本地缓存中读取用户信息（其中包含 openId）
   const userInfo = wx.getStorageSync('userInfo')
   console.log(userInfo)
 
-  // 如果用户未登录或缺少 openId，则提示用户登录
   if (!userInfo || !userInfo.openId) {
-    wx.showToast({title: '请先登录', icon: 'none'})
+    wx.showToast({ title: '请先登录', icon: 'none' })
     return
   }
 
-  // 向后端发起支付请求，生成 JSAPI 支付参数
-  wx.request({
-    url: baseUrl + '/api/pay/create',  // 后端接口地址（生成预支付订单）
+  // 发起预支付请求
+  request({
+    url: baseUrl + '/api/pay/create',
     method: 'POST',
     data: {
-      openid: userInfo.openId,         // 当前用户的 openid，用于标识微信身份
-      total: totalPrice.value.toFixed(2),                         // 支付金额（单位：分，这里是 1 分 = 0.01 元）
-      description: '堂食支付'    // 商品描述
-    },
-    success(res) {
-      // 获取后端返回的支付参数（用于调起微信支付）
-      const payData = res.data.data
-
-      // 调起微信支付能力
-      wx.requestPayment({
-        timeStamp: payData.timeStamp,   // 支付签名时间戳
-        nonceStr: payData.nonceStr,     // 支付签名随机串
-        package: payData.package,       // 预支付交易会话标识（格式必须为 prepay_id=xxx）
-        signType: payData.signType,     // 签名算法（一般为 RSA 或 MD5）
-        paySign: payData.paySign,       // 支付签名
-
-        // 支付成功回调
-        success() {
-          wx.showToast({title: '支付成功'})
-          // 你可以在这里跳转页面、刷新订单状态等
-          wx.request({
-            url: baseUrl + '/api/orders/paySuccess',
-            method: 'POST',
-            data: {
-              orderNo: orderNo.value,
-              remark: orderRemark.value  // 备注一并传给后端
-            },
-            success() {
-              console.log('订单状态更新为已支付，备注保存成功')
-              wx.switchTab({ url: '/pages/order/order' })
-            },
-            fail(err) {
-              console.error('更新订单状态失败', err)
-            }
-          })
-        },
-
-        // 支付失败或用户取消回调
-        fail() {
-          wx.showToast({title: '支付失败', icon: 'none'})
-          console.error("支付失败", res)
-        }
-      })
-
-      // 打印支付数据，调试用
-      console.log(payData)
-    },
-
-    // 后端接口请求失败（如网络错误等）
-    fail(err) {
-      console.error('发起支付失败', err)
-      wx.showToast({title: '支付请求失败', icon: 'none'})
+      openid: userInfo.openId,
+      total: totalPrice.value.toFixed(2),
+      description: '堂食支付'
     }
+  }).then(res => {
+    const payData = res.data.data
+
+    // 调起微信支付
+    wx.requestPayment({
+      timeStamp: payData.timeStamp,
+      nonceStr: payData.nonceStr,
+      package: payData.package,
+      signType: payData.signType,
+      paySign: payData.paySign,
+
+      success() {
+        wx.showToast({ title: '支付成功' })
+
+        // 支付成功后，更新订单状态
+        request({
+          url: baseUrl + '/api/orders/paySuccess',
+          method: 'POST',
+          data: {
+            orderNo: orderNo.value,
+            remark: orderRemark.value
+          }
+        }).then(() => {
+          console.log('订单状态更新为已支付，备注保存成功')
+          wx.switchTab({ url: '/pages/order/order' })
+        }).catch(err => {
+          console.error('更新订单状态失败', err)
+          wx.showToast({ title: '订单更新失败', icon: 'none' })
+        })
+      },
+
+      fail(err) {
+        wx.showToast({ title: '支付失败', icon: 'none' })
+        console.error('支付失败', err)
+      }
+    })
+  }).catch(err => {
+    console.error('发起支付失败', err)
+    wx.showToast({ title: '支付请求失败', icon: 'none' })
   })
 }
 </script>
