@@ -84,6 +84,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import baseUrl from '../../../config.js'
+import { request } from '@/request'
 
 // 菜单相关
 const menu = ref([])
@@ -182,7 +183,7 @@ const onCheckout = () => {
   console.log('订单结算数据:', orderData)
 
   // ✅ 请求创建订单
-  uni.request({
+  request({
     url: baseUrl + '/api/orderSouvenir/createOrder',
     method: 'POST',
     data: orderData,

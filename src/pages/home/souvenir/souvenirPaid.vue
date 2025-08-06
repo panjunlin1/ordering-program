@@ -88,6 +88,7 @@
 import {computed, ref, onMounted} from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import baseUrl from '../../../config.js'
+import {request} from "../../../request";
 
 interface Address {
   id: number
@@ -214,7 +215,7 @@ const totalPrice = computed(() => {
 
 
 //运费
-const deliveryFee = ref(10)
+const deliveryFee = ref(0)
 
 const payableAmount = computed(() => {
   return totalPrice.value + deliveryFee.value
@@ -234,7 +235,7 @@ const onPayClick = () => {
   }
 
   // 向后端发起支付请求，生成 JSAPI 支付参数
-  wx.request({
+  request({
     url: baseUrl + '/api/pay/create',  // 后端接口地址（生成预支付订单）
     method: 'POST',
     data: {
@@ -260,7 +261,7 @@ const onPayClick = () => {
 
           // 更新订单状态 + 保存备注
           const userAddressId = ref(selectedAddress.value?.id || 0);
-          wx.request({
+          request({
             url: baseUrl + '/api/orderSouvenir/paySuccess',
             method: 'POST',
             data: {
