@@ -183,7 +183,7 @@ const onCheckout = () => {
   console.log('订单结算数据:', orderData)
 
   // ✅ 请求创建订单
-  request({
+  uni.request({
     url: baseUrl + '/api/orderSouvenir/createOrder',
     method: 'POST',
     data: orderData,

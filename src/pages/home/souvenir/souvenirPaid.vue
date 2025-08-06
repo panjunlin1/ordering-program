@@ -88,7 +88,7 @@
 import {computed, ref, onMounted} from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import baseUrl from '../../../config.js'
-import {request} from "../../../request";
+import {request} from "@/request.js";
 
 interface Address {
   id: number
@@ -242,12 +242,12 @@ const onPayClick = () => {
       openid: userInfo.openId,         // 当前用户的 openid，用于标识微信身份
       total: payableAmount.value.toFixed(2),          //这里是字符串格式，后端再乘100变成元
       description: '好物订单'    // 商品描述
-    },
-    success(res) {
-      // 获取后端返回的支付参数（用于调起微信支付）
-      const payData = res.data.data
+    }
+  }).then(res => {
+    const payData = res.data.data
 
-      // 调起微信支付能力
+    // 调起微信支付能力
+    return new Promise((resolve, reject) => {
       wx.requestPayment({
         timeStamp: payData.timeStamp,   // 支付签名时间戳
         nonceStr: payData.nonceStr,     // 支付签名随机串
@@ -255,43 +255,41 @@ const onPayClick = () => {
         signType: payData.signType,     // 签名算法（一般为 RSA 或 MD5）
         paySign: payData.paySign,       // 支付签名
 
-        // 支付成功回调
         success() {
-          wx.showToast({ title: '支付成功' });
-
-          // 更新订单状态 + 保存备注
-          const userAddressId = ref(selectedAddress.value?.id || 0);
-          request({
-            url: baseUrl + '/api/orderSouvenir/paySuccess',
-            method: 'POST',
-            data: {
-              purchaseNo: purchaseNo.value,
-              remark: orderRemark.value,
-              addressId: userAddressId.value  // 地址ID传给后端
-            },
-            success() {
-              console.log('订单状态更新为已支付，备注保存成功');
-              wx.switchTab({ url: '/pages/home/index' })
-            },
-            fail(err) {
-              console.error('更新订单状态失败', err);
-            }
-          });
+          resolve()
         },
-
-        // 支付失败或用户取消回调
-        fail() {
-          wx.showToast({title: '支付失败', icon: 'none'})
-          console.error("支付失败", res)
+        fail(err) {
+          reject(err)
         }
       })
+    })
+  }).then(() => {
+    wx.showToast({ title: '支付成功' });
 
-      // 打印支付数据，调试用
-      console.log(payData)
-    },
-
-    // 后端接口请求失败（如网络错误等）
-    fail(err) {
+    // 更新订单状态 + 保存备注
+    const userAddressId = ref(selectedAddress.value?.id || 0);
+    return request({
+      url: baseUrl + '/api/orderSouvenir/paySuccess',
+      method: 'POST',
+      data: {
+        purchaseNo: purchaseNo.value,
+        remark: orderRemark.value,
+        addressId: userAddressId.value  // 地址ID传给后端
+      }
+    })
+  }).then(() => {
+    console.log('订单状态更新为已支付，备注保存成功');
+    wx.switchTab({ url: '/pages/home/index' })
+  }).catch(err => {
+    if (err.errMsg && err.errMsg.includes('requestPayment:fail')) {
+      wx.showToast({title: '支付失败', icon: 'none'})
+      console.error("支付失败", err)
+    } else if (err.errMsg) {
+      // 支付成功但更新订单状态失败
+      console.error('更新订单状态失败', err);
+      wx.showToast({ title: '订单更新失败', icon: 'none' })
+    } else {
+      // 发起支付请求失败（如网络错误等）
       console.error('发起支付失败', err)
       wx.showToast({title: '支付请求失败', icon: 'none'})
     }
